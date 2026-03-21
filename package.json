@@ -1,0 +1,8 @@
+{
+  "name": "kps-email-api",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "resend": "^4.0.0"
+  }
+}
