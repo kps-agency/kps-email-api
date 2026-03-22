@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     // Email 1 : Envoyer le brief à KPS
     console.log('📤 Envoi email à KPS...');
     const kpsEmailResult = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'KPS Agency <contact@kps-agency.com>',
       to: 'kps.agency.ia@gmail.com',
       subject: 'Nouveau Brief Reçu - KPS Agency',
       html: `
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     // Email 2 : Confirmation au client
     console.log('📤 Envoi confirmation au client...');
     const clientEmailResult = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'KPS Agency <contact@kps-agency.com>',
       to: clientEmail,
       subject: 'Confirmation de votre brief - KPS Agency',
       html: `
