@@ -35,12 +35,57 @@ export default async function handler(req, res) {
       from: 'KPS Agency <contact@kps-agency.com>',
       to: 'kps.agency.ia@gmail.com',
       subject: 'Nouveau Brief Reçu - KPS Agency',
-      html: `
-        <h2>Nouveau Brief Reçu</h2>
-        <p><strong>Email client:</strong> ${clientEmail}</p>
-        <hr />
-        <h3>Détails du Brief:</h3>
-        <pre>${JSON.stringify(formData, null, 2)}</pre>
+     html: `
+  <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
+    <h2 style="margin-bottom: 16px;">📩 Nouveau Brief Reçu — KPS Agency</h2>
+
+    <p><strong>Email client :</strong> ${clientEmail}</p>
+
+    <hr style="margin: 20px 0;" />
+
+    <h3>Informations client</h3>
+    <p><strong>Nom :</strong> ${formData.nom || '-'}</p>
+    <p><strong>Email :</strong> ${formData.email || '-'}</p>
+    <p><strong>Téléphone :</strong> ${formData.telephone || '-'}</p>
+    <p><strong>Entreprise :</strong> ${formData.entreprise || '-'}</p>
+
+    <hr style="margin: 20px 0;" />
+
+    <h3>Projet</h3>
+    <p><strong>Offre :</strong> ${formData.offre || '-'}</p>
+    <p><strong>Objectif :</strong> ${formData.objectif || '-'}</p>
+    <p><strong>Cible :</strong> ${formData.cible || '-'}</p>
+    <p><strong>Description :</strong><br>${formData.description || '-'}</p>
+    <p><strong>Nombre de pages :</strong> ${formData.pages || '-'}</p>
+
+    <hr style="margin: 20px 0;" />
+
+    <h3>Site existant / domaine</h3>
+    <p><strong>Site existant :</strong> ${formData.existant || '-'}</p>
+    <p><strong>URL existante :</strong> ${formData.urlExistant || '-'}</p>
+    <p><strong>Domaine déjà réservé :</strong> ${formData.domaine || '-'}</p>
+    <p><strong>Nom de domaine :</strong> ${formData.nomDomaine || '-'}</p>
+
+    <hr style="margin: 20px 0;" />
+
+    <h3>Contenu / design</h3>
+    <p><strong>Inspirations :</strong><br>${formData.inspirations || '-'}</p>
+    <p><strong>Couleurs / branding :</strong><br>${formData.couleurs || '-'}</p>
+    <p><strong>Contenus déjà prêts :</strong> ${formData.contenus || '-'}</p>
+    <p><strong>Textes fournis :</strong><br>${formData.textesFournis || '-'}</p>
+    <p><strong>Nombre d’images :</strong> ${formData.nombreImages || '-'}</p>
+
+    <hr style="margin: 20px 0;" />
+
+    <h3>Contraintes / timing</h3>
+    <p><strong>Deadline :</strong> ${formData.deadline || '-'}</p>
+    <p><strong>Contraintes spécifiques :</strong><br>${formData.contraintes || '-'}</p>
+
+    <hr style="margin: 20px 0;" />
+
+    <p><strong>Confirmation cadre commercial :</strong> ${formData.confirmation ? 'Oui' : 'Non'}</p>
+  </div>
+`
       `
     });
 
