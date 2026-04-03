@@ -646,27 +646,23 @@ const hasGoogleBusinessDetails =
     String(value).trim() !== '-'
 );
 
-const googleBusinessHtml =
-  hasGoogleBusinessEn === 'Yes'
-    ? `
-      <h3>Google Business</h3>
-      <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
-      <p><strong>Existing Google Business profile:</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
-      <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
-      <p><strong>Current profile link:</strong><br>${escapeHtml(googleBusinessUrl)}</p>
-      <p><strong>Business name to use:</strong> ${escapeHtml(googleBusinessName)}</p>
-      <p><strong>Address / service area:</strong> ${escapeHtml(googleBusinessAddress)}</p>
-      <p><strong>Phone number to display:</strong> ${escapeHtml(googleBusinessPhone)}</p>
-      <p><strong>Website to connect:</strong> ${escapeHtml(googleBusinessWebsite)}</p>
-      <p><strong>Business category:</strong> ${escapeHtml(googleBusinessCategory)}</p>
-      <p><strong>Important information to display:</strong><br>${escapeHtml(googleBusinessInfos)}</p>
-      <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(googleBusinessImprove)}</p>
-      <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(googleBusinessGoal)}</p>
-    `
-    : `
-      <h3>Google Business</h3>
-      <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
-    `;
+const googleBusinessHtml = hasGoogleBusinessDetails
+  ? `
+    <h3>Google Business</h3>
+    <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
+    <p><strong>Existing Google Business profile:</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
+    <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
+    <p><strong>Current profile link:</strong><br>${escapeHtml(googleBusinessUrl)}</p>
+    <p><strong>Business name to use:</strong> ${escapeHtml(googleBusinessName)}</p>
+    <p><strong>Address / service area:</strong> ${escapeHtml(googleBusinessAddress)}</p>
+    <p><strong>Phone number to display:</strong> ${escapeHtml(googleBusinessPhone)}</p>
+    <p><strong>Website to connect:</strong> ${escapeHtml(googleBusinessWebsite)}</p>
+    <p><strong>Business category:</strong> ${escapeHtml(googleBusinessCategory)}</p>
+    <p><strong>Important information to display:</strong><br>${escapeHtml(googleBusinessInfos)}</p>
+    <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(googleBusinessImprove)}</p>
+    <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(googleBusinessGoal)}</p>
+  `
+  : '';
     
     const kpsEmailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
