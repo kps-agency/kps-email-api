@@ -223,7 +223,8 @@ export default async function handler(req, res) {
 
   try {
     const { formData, clientEmail } = req.body || {};
-
+console.log('=== HANDLER VERSION OK ===');
+    
     if (!formData || !clientEmail) {
       return res.status(400).json({
         error: 'Missing formData or clientEmail',
