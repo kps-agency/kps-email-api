@@ -2,14 +2,13 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const DEEPL_API_KEY = process.env.DEEPL_API_KEY || '';
+const DEEPL_API_URL =
+  process.env.DEEPL_API_URL || 'https://api-free.deepl.com/v2/translate';
+
 function safe(value) {
   if (value === undefined || value === null || value === '') return '-';
-  return String(value);
-}
-
-function normalizeText(value) {
-  if (value === undefined || value === null) return '';
-  return String(value).trim();
+  return value;
 }
 
 function boolToYesNo(value) {
@@ -19,7 +18,8 @@ function boolToYesNo(value) {
     value === 'Oui' ||
     value === 'yes' ||
     value === 'Yes' ||
-    value === 'true'
+    value === 'true' ||
+    value === 1
   ) {
     return 'Yes';
   }
@@ -30,9 +30,38 @@ function boolToYesNo(value) {
     value === 'Non' ||
     value === 'no' ||
     value === 'No' ||
-    value === 'false'
+    value === 'false' ||
+    value === 0
   ) {
     return 'No';
+  }
+
+  return '-';
+}
+
+function boolToOuiNon(value) {
+  if (
+    value === true ||
+    value === 'oui' ||
+    value === 'Oui' ||
+    value === 'yes' ||
+    value === 'Yes' ||
+    value === 'true' ||
+    value === 1
+  ) {
+    return 'Oui';
+  }
+
+  if (
+    value === false ||
+    value === 'non' ||
+    value === 'Non' ||
+    value === 'no' ||
+    value === 'No' ||
+    value === 'false' ||
+    value === 0
+  ) {
+    return 'Non';
   }
 
   return '-';
@@ -50,22 +79,30 @@ function escapeHtml(str) {
     .replace(/\n/g, '<br>');
 }
 
-function pickFirst(obj, keys = []) {
+function pickFirst(obj, keys) {
   for (const key of keys) {
-    if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
-      return obj[key];
+    const value = obj?.[key];
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
     }
   }
-  return undefined;
+  return '';
 }
 
 function normalizeAttachments(formData) {
   const attachments = [];
 
-  const logoAttachment = formData?.logoAttachment || null;
+  const logoAttachment =
+    formData?.logoAttachment ||
+    formData?.logoFile ||
+    formData?.logo ||
+    null;
+
   const imageAttachments = Array.isArray(formData?.imageAttachments)
     ? formData.imageAttachments
-    : [];
+    : Array.isArray(formData?.images)
+      ? formData.images
+      : [];
 
   if (logoAttachment && logoAttachment.content) {
     attachments.push({
@@ -89,12 +126,24 @@ function normalizeAttachments(formData) {
 function buildUploadedFilesHtml(formData) {
   const files = [];
 
-  if (formData?.logoAttachment?.name) {
-    files.push(`Logo: ${escapeHtml(formData.logoAttachment.name)}`);
+  const logoAttachment =
+    formData?.logoAttachment ||
+    formData?.logoFile ||
+    formData?.logo ||
+    null;
+
+  const imageAttachments = Array.isArray(formData?.imageAttachments)
+    ? formData.imageAttachments
+    : Array.isArray(formData?.images)
+      ? formData.images
+      : [];
+
+  if (logoAttachment?.name) {
+    files.push(`Logo: ${escapeHtml(logoAttachment.name)}`);
   }
 
-  if (Array.isArray(formData?.imageAttachments) && formData.imageAttachments.length > 0) {
-    for (const image of formData.imageAttachments) {
+  if (imageAttachments.length > 0) {
+    for (const image of imageAttachments) {
       if (image?.name) {
         files.push(`Image: ${escapeHtml(image.name)}`);
       }
@@ -106,16 +155,57 @@ function buildUploadedFilesHtml(formData) {
   return files.map((file) => `<li>${file}</li>`).join('');
 }
 
-function section(title, content) {
-  return `
-    <hr style="margin: 20px 0;" />
-    <h3 style="margin: 0 0 12px 0;">${title}</h3>
-    ${content}
-  `;
-}
+async function translateTextsToEnglish(textMap) {
+  const result = {};
+  const entries = Object.entries(textMap).filter(([, value]) => {
+    return value !== undefined && value !== null && value !== '' && value !== '-';
+  });
 
-function row(label, value) {
-  return `<p style="margin: 0 0 10px 0;"><strong>${label}</strong> ${value}</p>`;
+  if (entries.length === 0) {
+    return { ...textMap };
+  }
+
+  if (!DEEPL_API_KEY) {
+    return { ...textMap };
+  }
+
+  try {
+    const response = await fetch(DEEPL_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: entries.map(([, value]) => String(value)),
+        target_lang: 'EN',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ DeepL HTTP error:', response.status, errorText);
+      return { ...textMap };
+    }
+
+    const data = await response.json();
+    const translations = Array.isArray(data?.translations) ? data.translations : [];
+
+    entries.forEach(([key], index) => {
+      result[key] = translations[index]?.text || textMap[key];
+    });
+
+    for (const [key, value] of Object.entries(textMap)) {
+      if (!(key in result)) {
+        result[key] = value;
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error('❌ DeepL translation error:', error);
+    return { ...textMap };
+  }
 }
 
 export default async function handler(req, res) {
@@ -140,71 +230,120 @@ export default async function handler(req, res) {
       });
     }
 
-    const offre = safe(formData.offre);
-    const offreLower = normalizeText(formData.offre).toLowerCase();
+    const offre = safe(
+      pickFirst(formData, ['offre', 'offer', 'selectedOffer'])
+    );
 
-    const isLandingPage = offreLower.includes('landing');
+    const isLandingPage = String(offre).toLowerCase().includes('landing');
     const isSiteComplet =
-      offreLower.includes('site internet complet') ||
-      offreLower.includes('site web complet') ||
-      offreLower.includes('complete website');
+      String(offre).toLowerCase().includes('site internet complet') ||
+      String(offre).toLowerCase().includes('site web complet') ||
+      String(offre).toLowerCase().includes('complete website');
 
     const attachments = normalizeAttachments(formData);
     const uploadedFilesHtml = buildUploadedFilesHtml(formData);
 
-    // Client info
-    const nom = safe(formData.nom);
-    const email = safe(formData.email);
-    const telephone = safe(formData.telephone);
-    const entreprise = safe(formData.entreprise);
+    // Infos client
+    const nom = safe(pickFirst(formData, ['nom', 'name', 'fullName']));
+    const email = safe(pickFirst(formData, ['email']));
+    const telephone = safe(pickFirst(formData, ['telephone', 'phone']));
+    const entreprise = safe(
+      pickFirst(formData, ['entreprise', 'entrepriseActivite', 'company', 'activity'])
+    );
 
-    // Landing Page fields
-    const objectifLP = safe(formData.objectifLP);
-    const offreService = safe(formData.offreService);
-    const cibleLP = safe(formData.cibleLP);
-    const descLP = safe(formData.descLP);
-    const actionAttendue = safe(formData.actionAttendue);
+    // Champs finaux communs
+    const contraintes = safe(
+      pickFirst(formData, ['contraintes', 'contraintesSpecifiques', 'specificConstraints'])
+    );
+    const confirmation = boolToOuiNon(
+      pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
+    );
+    const confirmationEn = boolToYesNo(
+      pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
+    );
 
-    // Website fields
-    const objectifSite = safe(formData.objectifSite);
-    const cibleSite = safe(formData.cibleSite);
-    const descSite = safe(formData.descSite);
-    const pagesSite = safe(formData.pagesSite);
+    // Landing Page
+    const objectifLP = safe(
+      pickFirst(formData, ['objectifLP', 'objectifPrincipal', 'mainGoalLP'])
+    );
+    const offreService = safe(
+      pickFirst(formData, ['offreService', 'offreServiceMisEnAvant', 'highlightedOffer'])
+    );
+    const cibleLP = safe(
+      pickFirst(formData, ['cibleLP', 'publicCible', 'targetAudienceLP'])
+    );
+    const descLP = safe(
+      pickFirst(formData, ['descLP', 'descriptionProjet', 'projectDescriptionLP'])
+    );
+    const actionAttendue = safe(
+      pickFirst(formData, ['actionAttendue', 'actionAttendueVisiteur', 'expectedVisitorAction'])
+    );
 
-    const hasWebsite = boolToYesNo(
-      pickFirst(formData, ['hasWebsite', 'siteExistant', 'websiteExists'])
+    // Site complet
+    const objectifSite = safe(
+      pickFirst(formData, ['objectifSite', 'objectifPrincipalSite', 'mainGoalSite'])
+    );
+    const cibleSite = safe(
+      pickFirst(formData, ['cibleSite', 'publicCibleSite', 'targetAudienceSite'])
+    );
+    const descSite = safe(
+      pickFirst(formData, ['descSite', 'descriptionProjetSite', 'projectDescriptionSite'])
+    );
+    const pagesSite = safe(
+      pickFirst(formData, ['pagesSite', 'pagesSectionsSouhaitees', 'desiredPages'])
+    );
+    const hasWebsite = boolToOuiNon(
+      pickFirst(formData, ['hasWebsite', 'siteExistant', 'existingWebsite'])
+    );
+    const hasWebsiteEn = boolToYesNo(
+      pickFirst(formData, ['hasWebsite', 'siteExistant', 'existingWebsite'])
     );
     const websiteUrl = safe(
-      pickFirst(formData, ['websiteUrl', 'siteUrl', 'urlExistante'])
+      pickFirst(formData, ['websiteUrl', 'urlExistante', 'existingUrl'])
     );
-    const hasDomain = boolToYesNo(
-      pickFirst(formData, ['hasDomain', 'domainReserved', 'domaineReserve'])
+    const hasDomain = boolToOuiNon(
+      pickFirst(formData, ['hasDomain', 'domaineReserve', 'domainAlreadyBooked'])
+    );
+    const hasDomainEn = boolToYesNo(
+      pickFirst(formData, ['hasDomain', 'domaineReserve', 'domainAlreadyBooked'])
     );
     const domainName = safe(
-      pickFirst(formData, ['domainName', 'nomDomaine', 'domaineNom'])
+      pickFirst(formData, ['domainName', 'nomDeDomaine', 'domain'])
     );
-    const hasContent = boolToYesNo(
-      pickFirst(formData, ['hasContent', 'contenuPret', 'contentReady'])
+    const hasContent = boolToOuiNon(
+      pickFirst(formData, ['hasContent', 'contenusDejaPrets', 'contentReady'])
+    );
+    const hasContentEn = boolToYesNo(
+      pickFirst(formData, ['hasContent', 'contenusDejaPrets', 'contentReady'])
     );
     const missingElements = safe(
       pickFirst(formData, ['missingElements', 'elementsManquants'])
     );
 
-    // Content / design
-    const hasTexts = boolToYesNo(
-      pickFirst(formData, ['hasTexts', 'textesPrets'])
+    // Ressources / contenu
+    const hasTexts = boolToOuiNon(
+      pickFirst(formData, ['hasTexts', 'textesDejaPrets', 'textsReady'])
+    );
+    const hasTextsEn = boolToYesNo(
+      pickFirst(formData, ['hasTexts', 'textesDejaPrets', 'textsReady'])
     );
     const textesFournis = safe(
       pickFirst(formData, ['textesFournis', 'providedTexts'])
     );
-    const hasLogo = boolToYesNo(
-      pickFirst(formData, ['hasLogo', 'logoDisponible'])
+    const hasLogo = boolToOuiNon(
+      pickFirst(formData, ['hasLogo', 'logoDisponible', 'logoAvailable'])
     );
-    const hasImages = boolToYesNo(
-      pickFirst(formData, ['hasImages', 'imagesDisponibles'])
+    const hasLogoEn = boolToYesNo(
+      pickFirst(formData, ['hasLogo', 'logoDisponible', 'logoAvailable'])
+    );
+    const hasImages = boolToOuiNon(
+      pickFirst(formData, ['hasImages', 'imagesDisponibles', 'imagesAvailable'])
+    );
+    const hasImagesEn = boolToYesNo(
+      pickFirst(formData, ['hasImages', 'imagesDisponibles', 'imagesAvailable'])
     );
     const nombreImages = safe(
-      pickFirst(formData, ['nombreImages', 'imageCount'])
+      pickFirst(formData, ['nombreImages', 'numberOfImages'])
     );
     const liensUtiles = safe(
       pickFirst(formData, ['liensUtiles', 'usefulLinks'])
@@ -213,251 +352,315 @@ export default async function handler(req, res) {
       pickFirst(formData, ['inspirations', 'designInspirations'])
     );
     const couleurs = safe(
-      pickFirst(formData, ['couleurs', 'brandingColors', 'branding'])
+      pickFirst(formData, ['couleurs', 'branding', 'colorsBranding'])
     );
 
     // Google Business
-    const needsGoogleBusiness = boolToYesNo(
-      pickFirst(formData, [
-        'needsGoogleBusiness',
-        'googleBusinessNeeded',
-        'googleBusinessSupport',
-        'needsGoogleBusinessSupport',
-      ])
-    );
-
-    const hasGoogleBusiness = boolToYesNo(
+    const hasGoogleBusiness = boolToOuiNon(
       pickFirst(formData, [
         'hasGoogleBusiness',
-        'googleBusinessExists',
-        'hasExistingGoogleBusiness',
+        'besoinGoogleBusiness',
+        'googleBusinessNeeded',
+        'googleBusinessSupport',
+      ])
+    );
+    const hasGoogleBusinessEn = boolToYesNo(
+      pickFirst(formData, [
+        'hasGoogleBusiness',
+        'besoinGoogleBusiness',
+        'googleBusinessNeeded',
+        'googleBusinessSupport',
       ])
     );
 
-    const wantsGoogleBusinessCreation = boolToYesNo(
+    const hasExistingGoogleBusiness = boolToOuiNon(
       pickFirst(formData, [
-        'wantsGoogleBusinessCreation',
+        'hasExistingGoogleBusiness',
+        'ficheGoogleBusinessExistante',
+        'existingGoogleBusiness',
+      ])
+    );
+    const hasExistingGoogleBusinessEn = boolToYesNo(
+      pickFirst(formData, [
+        'hasExistingGoogleBusiness',
+        'ficheGoogleBusinessExistante',
+        'existingGoogleBusiness',
+      ])
+    );
+
+    const createGoogleBusiness = boolToOuiNon(
+      pickFirst(formData, [
         'createGoogleBusiness',
-        'googleBusinessCreation',
+        'creationGoogleBusiness',
+        'createGoogleBusinessProfile',
+      ])
+    );
+    const createGoogleBusinessEn = boolToYesNo(
+      pickFirst(formData, [
+        'createGoogleBusiness',
+        'creationGoogleBusiness',
+        'createGoogleBusinessProfile',
       ])
     );
 
     const googleBusinessUrl = safe(
       pickFirst(formData, [
         'googleBusinessUrl',
-        'googleBusinessLink',
-        'currentGoogleBusinessUrl',
+        'lienFicheGoogleBusiness',
+        'existingGoogleBusinessUrl',
       ])
     );
 
-    const googleBusinessImprovements = safe(
+    const googleBusinessGoal = safe(
       pickFirst(formData, [
-        'googleBusinessImprovements',
-        'googleBusinessNeeds',
-        'googleBusinessChanges',
+        'googleBusinessGoal',
+        'souhaitezVousRelierVotreFuturSite',
+        'googleBusinessConnectionGoal',
+        'whatDoYouWantUsToDo',
+        'whatDoYouWantToImprove',
       ])
     );
 
-    const googleBusinessLinkWithSite = safe(
+    const googleBusinessImprove = safe(
       pickFirst(formData, [
-        'googleBusinessLinkWithSite',
-        'googleBusinessSiteConnection',
-        'linkSiteToGoogleBusiness',
+        'googleBusinessImprove',
+        'queSouhaitezVousAmeliorer',
+        'whatDoYouWantToImprove',
       ])
     );
 
     const googleBusinessName = safe(
       pickFirst(formData, [
         'googleBusinessName',
+        'nomEtablissement',
         'businessName',
-        'etablissementNom',
       ])
     );
 
     const googleBusinessAddress = safe(
       pickFirst(formData, [
         'googleBusinessAddress',
+        'adresseZoneDesservie',
         'businessAddress',
-        'zoneDesservie',
-        'adresseZone',
       ])
     );
 
     const googleBusinessPhone = safe(
       pickFirst(formData, [
         'googleBusinessPhone',
-        'businessPhone',
         'telephoneGoogleBusiness',
+        'businessPhone',
       ])
     );
 
     const googleBusinessWebsite = safe(
       pickFirst(formData, [
         'googleBusinessWebsite',
+        'siteWebARelier',
         'businessWebsite',
-        'siteWebGoogleBusiness',
       ])
     );
 
     const googleBusinessCategory = safe(
       pickFirst(formData, [
         'googleBusinessCategory',
-        'businessCategory',
         'categorieActivite',
+        'businessCategory',
       ])
     );
 
     const googleBusinessInfos = safe(
       pickFirst(formData, [
         'googleBusinessInfos',
-        'businessInfos',
-        'infosGoogleBusiness',
+        'informationsImportantesGoogleBusiness',
+        'businessImportantInfos',
       ])
     );
 
-    // Final notes
-    const contraintes = safe(formData.contraintes);
-    const confirmation = boolToYesNo(formData.confirmation);
-
-    const offerTypeLabel = isLandingPage
-      ? 'Landing Page'
-      : isSiteComplet
-      ? 'Complete Website'
-      : offre;
+    // Traduction automatique des champs libres pour le mail prestataire
+    const translated = await translateTextsToEnglish({
+      objectifLP,
+      offreService,
+      cibleLP,
+      descLP,
+      actionAttendue,
+      objectifSite,
+      cibleSite,
+      descSite,
+      pagesSite,
+      websiteUrl,
+      domainName,
+      missingElements,
+      textesFournis,
+      liensUtiles,
+      inspirations,
+      couleurs,
+      contraintes,
+      googleBusinessUrl,
+      googleBusinessGoal,
+      googleBusinessImprove,
+      googleBusinessName,
+      googleBusinessAddress,
+      googleBusinessPhone,
+      googleBusinessWebsite,
+      googleBusinessCategory,
+      googleBusinessInfos,
+      entreprise,
+      nom,
+    });
 
     const projectHtml = isLandingPage
       ? `
-        ${row('Selected offer:', escapeHtml(offre))}
-        ${row('Offer type:', 'Landing Page')}
-        ${row('Main goal:', escapeHtml(objectifLP))}
-        ${row('Offer / service highlighted:', escapeHtml(offreService))}
-        ${row('Target audience:', escapeHtml(cibleLP))}
-        ${row('Project description:<br>', escapeHtml(descLP))}
-        ${row('Expected visitor action:', escapeHtml(actionAttendue))}
-        ${row('Desired pages / sections:', '-')}
-        ${row('Number of pages:', '-')}
+        <h3>Project</h3>
+        <p><strong>Offer:</strong> ${escapeHtml(offre)}</p>
+        <p><strong>Offer type:</strong> Landing Page</p>
+        <p><strong>Main goal:</strong> ${escapeHtml(translated.objectifLP)}</p>
+        <p><strong>Offer / service highlighted:</strong> ${escapeHtml(translated.offreService)}</p>
+        <p><strong>Target audience:</strong> ${escapeHtml(translated.cibleLP)}</p>
+        <p><strong>Project description:</strong><br>${escapeHtml(translated.descLP)}</p>
+        <p><strong>Expected visitor action:</strong> ${escapeHtml(translated.actionAttendue)}</p>
+        <p><strong>Desired pages / sections:</strong> -</p>
+        <p><strong>Number of pages:</strong> -</p>
       `
       : `
-        ${row('Selected offer:', escapeHtml(offre))}
-        ${row('Offer type:', 'Complete Website')}
-        ${row('Main goal:', escapeHtml(objectifSite))}
-        ${row('Offer / service highlighted:', '-')}
-        ${row('Target audience:', escapeHtml(cibleSite))}
-        ${row('Project description:<br>', escapeHtml(descSite))}
-        ${row('Expected visitor action:', '-')}
-        ${row('Desired pages / sections:<br>', escapeHtml(pagesSite))}
-        ${row('Number of pages:', '-')}
+        <h3>Project</h3>
+        <p><strong>Offer:</strong> ${escapeHtml(offre)}</p>
+        <p><strong>Offer type:</strong> Complete Website</p>
+        <p><strong>Main goal:</strong> ${escapeHtml(translated.objectifSite)}</p>
+        <p><strong>Offer / service highlighted:</strong> -</p>
+        <p><strong>Target audience:</strong> ${escapeHtml(translated.cibleSite)}</p>
+        <p><strong>Project description:</strong><br>${escapeHtml(translated.descSite)}</p>
+        <p><strong>Expected visitor action:</strong> -</p>
+        <p><strong>Desired pages / sections:</strong><br>${escapeHtml(translated.pagesSite)}</p>
+        <p><strong>Number of pages:</strong> -</p>
       `;
 
-    const websiteDomainHtml = isLandingPage
+    const siteDomainHtml = isLandingPage
       ? `
-        ${row('Existing website:', '-')}
-        ${row('Existing URL:', '-')}
-        ${row('Domain already booked:', escapeHtml(hasDomain))}
-        ${row('Domain name:', escapeHtml(domainName))}
+        <h3>Website / domain</h3>
+        <p><strong>Existing website:</strong> -</p>
+        <p><strong>Existing URL:</strong> -</p>
+        <p><strong>Domain already booked:</strong> ${escapeHtml(hasDomainEn)}</p>
+        <p><strong>Domain name:</strong> ${escapeHtml(translated.domainName)}</p>
       `
       : `
-        ${row('Existing website:', escapeHtml(hasWebsite))}
-        ${row('Existing URL:', escapeHtml(websiteUrl))}
-        ${row('Domain already booked:', escapeHtml(hasDomain))}
-        ${row('Domain name:', escapeHtml(domainName))}
+        <h3>Website / domain</h3>
+        <p><strong>Existing website:</strong> ${escapeHtml(hasWebsiteEn)}</p>
+        <p><strong>Existing URL:</strong> ${escapeHtml(translated.websiteUrl)}</p>
+        <p><strong>Domain already booked:</strong> ${escapeHtml(hasDomainEn)}</p>
+        <p><strong>Domain name:</strong> ${escapeHtml(translated.domainName)}</p>
       `;
 
     const contentDesignHtml = isLandingPage
       ? `
-        ${row('Design inspirations:<br>', escapeHtml(inspirations))}
-        ${row('Colors / branding:<br>', escapeHtml(couleurs))}
-        ${row('Texts already prepared:', escapeHtml(hasTexts))}
-        ${row('Texts provided:<br>', escapeHtml(textesFournis))}
-        ${row('Logo available:', escapeHtml(hasLogo))}
-        ${row('Images / visuals available:', escapeHtml(hasImages))}
-        ${row('Number of images:', escapeHtml(nombreImages))}
-        ${row('Useful links:<br>', escapeHtml(liensUtiles))}
+        <h3>Content / design</h3>
+        <p><strong>Design inspirations:</strong><br>${escapeHtml(translated.inspirations)}</p>
+        <p><strong>Colors / branding:</strong><br>${escapeHtml(translated.couleurs)}</p>
+        <p><strong>Texts already prepared:</strong> ${escapeHtml(hasTextsEn)}</p>
+        <p><strong>Texts provided:</strong><br>${escapeHtml(translated.textesFournis)}</p>
+        <p><strong>Logo available:</strong> ${escapeHtml(hasLogoEn)}</p>
+        <p><strong>Images / visuals available:</strong> ${escapeHtml(hasImagesEn)}</p>
+        <p><strong>Number of images:</strong> ${escapeHtml(nombreImages)}</p>
+        <p><strong>Useful links:</strong><br>${escapeHtml(translated.liensUtiles)}</p>
       `
       : `
-        ${row('Design inspirations:<br>', escapeHtml(inspirations))}
-        ${row('Colors / branding:<br>', escapeHtml(couleurs))}
-        ${row('Content already prepared:', escapeHtml(hasContent))}
-        ${row('Missing elements:<br>', escapeHtml(missingElements))}
-        ${row('Texts already prepared:', escapeHtml(hasTexts))}
-        ${row('Texts provided:<br>', escapeHtml(textesFournis))}
-        ${row('Logo available:', escapeHtml(hasLogo))}
-        ${row('Images / visuals available:', escapeHtml(hasImages))}
-        ${row('Number of images:', escapeHtml(nombreImages))}
-        ${row('Useful links:<br>', escapeHtml(liensUtiles))}
+        <h3>Content / design</h3>
+        <p><strong>Design inspirations:</strong><br>${escapeHtml(translated.inspirations)}</p>
+        <p><strong>Colors / branding:</strong><br>${escapeHtml(translated.couleurs)}</p>
+        <p><strong>Content already prepared:</strong> ${escapeHtml(hasContentEn)}</p>
+        <p><strong>Missing elements:</strong><br>${escapeHtml(translated.missingElements)}</p>
+        <p><strong>Texts already prepared:</strong> ${escapeHtml(hasTextsEn)}</p>
+        <p><strong>Texts provided:</strong><br>${escapeHtml(translated.textesFournis)}</p>
+        <p><strong>Logo available:</strong> ${escapeHtml(hasLogoEn)}</p>
+        <p><strong>Images / visuals available:</strong> ${escapeHtml(hasImagesEn)}</p>
+        <p><strong>Number of images:</strong> ${escapeHtml(nombreImages)}</p>
+        <p><strong>Useful links:</strong><br>${escapeHtml(translated.liensUtiles)}</p>
       `;
 
     const googleBusinessHtml =
-      needsGoogleBusiness === 'Yes'
+      hasGoogleBusinessEn === 'Yes'
         ? `
-          ${row('Need Google Business support:', 'Yes')}
-          ${row('Existing Google Business profile:', escapeHtml(hasGoogleBusiness))}
-          ${row('Need profile creation:', escapeHtml(wantsGoogleBusinessCreation))}
-          ${
-            hasGoogleBusiness === 'Yes'
-              ? `
-                ${row('Current profile link:', escapeHtml(googleBusinessUrl))}
-                ${row('What should we improve:<br>', escapeHtml(googleBusinessImprovements))}
-              `
-              : ''
-          }
-          ${
-            wantsGoogleBusinessCreation === 'Yes'
-              ? `
-                ${row('Business name to display:', escapeHtml(googleBusinessName))}
-                ${row('Address / service area:', escapeHtml(googleBusinessAddress))}
-                ${row('Public phone number:', escapeHtml(googleBusinessPhone))}
-                ${row('Website to connect:', escapeHtml(googleBusinessWebsite))}
-                ${row('Business category:', escapeHtml(googleBusinessCategory))}
-                ${row('Important information to display:<br>', escapeHtml(googleBusinessInfos))}
-              `
-              : ''
-          }
-          ${row('Link future website with local presence:<br>', escapeHtml(googleBusinessLinkWithSite))}
+          <h3>Google Business</h3>
+          <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
+          <p><strong>Existing Google Business profile:</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
+          <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
+          <p><strong>Current profile link:</strong><br>${escapeHtml(translated.googleBusinessUrl)}</p>
+          <p><strong>Business name to use:</strong> ${escapeHtml(translated.googleBusinessName)}</p>
+          <p><strong>Address / service area:</strong> ${escapeHtml(translated.googleBusinessAddress)}</p>
+          <p><strong>Phone number to display:</strong> ${escapeHtml(translated.googleBusinessPhone)}</p>
+          <p><strong>Website to connect:</strong> ${escapeHtml(translated.googleBusinessWebsite)}</p>
+          <p><strong>Business category:</strong> ${escapeHtml(translated.googleBusinessCategory)}</p>
+          <p><strong>Important information to display:</strong><br>${escapeHtml(translated.googleBusinessInfos)}</p>
+          <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(translated.googleBusinessImprove)}</p>
+          <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(translated.googleBusinessGoal)}</p>
         `
         : `
-          ${row('Need Google Business support:', 'No')}
+          <h3>Google Business</h3>
+          <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
         `;
-
-    const uploadedFilesSection =
-      uploadedFilesHtml === '-'
-        ? `<p style="margin: 0;">-</p>`
-        : `<ul style="margin: 0; padding-left: 20px;">${uploadedFilesHtml}</ul>`;
-
-    const finalNotesHtml = `
-      ${row('Specific constraints:<br>', escapeHtml(contraintes))}
-      ${row('Commercial terms confirmed:', escapeHtml(confirmation))}
-    `;
 
     const kpsEmailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin-bottom: 16px;">📩 New Brief Received - KPS Agency</h2>
 
-        <p style="margin: 0 0 12px 0;"><strong>Client email:</strong> ${escapeHtml(clientEmail)}</p>
+        <p><strong>Client email:</strong> ${escapeHtml(clientEmail)}</p>
 
-        ${section(
-          'Client information',
-          `
-            ${row('Full name:', escapeHtml(nom))}
-            ${row('Email:', escapeHtml(email))}
-            ${row('Phone:', escapeHtml(telephone))}
-            ${row('Company / activity:', escapeHtml(entreprise))}
-          `
-        )}
+        <hr style="margin: 20px 0;" />
 
-        ${section('Project', projectHtml)}
+        <h3>Client information</h3>
+        <p><strong>Full name:</strong> ${escapeHtml(nom)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(telephone)}</p>
+        <p><strong>Company / activity:</strong> ${escapeHtml(translated.entreprise)}</p>
 
-        ${section('Website / domain', websiteDomainHtml)}
+        <hr style="margin: 20px 0;" />
 
-        ${section('Content / design', contentDesignHtml)}
+        ${projectHtml}
 
-        ${section('Google Business Profile', googleBusinessHtml)}
+        <hr style="margin: 20px 0;" />
 
-        ${section('Uploaded files', uploadedFilesSection)}
+        ${siteDomainHtml}
 
-        ${section('Final notes', finalNotesHtml)}
+        <hr style="margin: 20px 0;" />
+
+        ${contentDesignHtml}
+
+        <hr style="margin: 20px 0;" />
+
+        ${googleBusinessHtml}
+
+        <hr style="margin: 20px 0;" />
+
+        <h3>Uploaded files</h3>
+        ${
+          uploadedFilesHtml === '-'
+            ? `<p>-</p>`
+            : `<ul>${uploadedFilesHtml}</ul>`
+        }
+
+        <hr style="margin: 20px 0;" />
+
+        <h3>Final notes</h3>
+        <p><strong>Specific constraints:</strong><br>${escapeHtml(translated.contraintes)}</p>
+        <p><strong>Commercial terms confirmed:</strong> ${escapeHtml(confirmationEn)}</p>
       </div>
     `;
+
+    const kpsEmailResult = await resend.emails.send({
+      from: 'KPS Agency <contact@kps-agency.com>',
+      to: 'kps.agency.ia@gmail.com',
+      subject: `New Brief Received - ${offre}`,
+      html: kpsEmailHtml,
+      attachments,
+    });
+
+    if (kpsEmailResult.error) {
+      console.error('❌ Error sending KPS email:', kpsEmailResult.error);
+      return res.status(500).json({
+        error: 'Failed to send email to KPS',
+        details: kpsEmailResult.error,
+      });
+    }
 
     const clientEmailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
@@ -477,23 +680,6 @@ export default async function handler(req, res) {
       </div>
     `;
 
-    // Prestataire email
-    const kpsEmailResult = await resend.emails.send({
-      from: 'KPS Agency <contact@kps-agency.com>',
-      to: 'kps.agency.ia@gmail.com',
-      subject: `New Brief Received - ${offerTypeLabel}`,
-      html: kpsEmailHtml,
-      attachments,
-    });
-
-    if (kpsEmailResult?.error) {
-      return res.status(500).json({
-        error: 'Failed to send email to KPS',
-        details: kpsEmailResult.error,
-      });
-    }
-
-    // Client email
     const clientEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
       to: clientEmail,
@@ -501,7 +687,8 @@ export default async function handler(req, res) {
       html: clientEmailHtml,
     });
 
-    if (clientEmailResult?.error) {
+    if (clientEmailResult.error) {
+      console.error('❌ Error sending client email:', clientEmailResult.error);
       return res.status(500).json({
         error: 'Failed to send confirmation email',
         details: clientEmailResult.error,
@@ -514,8 +701,11 @@ export default async function handler(req, res) {
       kpsEmailId: kpsEmailResult.data?.id || null,
       clientEmailId: clientEmailResult.data?.id || null,
       attachmentsCount: attachments.length,
+      translationEnabled: Boolean(DEEPL_API_KEY),
     });
   } catch (error) {
+    console.error('❌ Server error:', error);
+
     return res.status(500).json({
       error: 'Server error',
       details: error.message,
