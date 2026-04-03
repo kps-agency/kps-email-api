@@ -358,155 +358,156 @@ export default async function handler(req, res) {
 // Google Business
 const hasGoogleBusiness = boolToOuiNon(
   pickFirst(formData, [
+    'googleBusinessNeededSite',
+    'googleBusinessNeededLP',
     'hasGoogleBusiness',
     'besoinGoogleBusiness',
     'googleBusinessNeeded',
     'googleBusinessSupport',
-    'googleBusiness',
   ])
 );
 
 const hasGoogleBusinessEn = boolToYesNo(
   pickFirst(formData, [
+    'googleBusinessNeededSite',
+    'googleBusinessNeededLP',
     'hasGoogleBusiness',
     'besoinGoogleBusiness',
     'googleBusinessNeeded',
     'googleBusinessSupport',
-    'googleBusiness',
   ])
 );
 
 const hasExistingGoogleBusiness = boolToOuiNon(
   pickFirst(formData, [
+    'hasGoogleBusinessProfileSite',
+    'hasGoogleBusinessProfileLP',
     'hasExistingGoogleBusiness',
     'ficheGoogleBusinessExistante',
     'existingGoogleBusiness',
-    'googleBusinessExisting',
-    'avezVousDejaUneFicheGoogleBusiness',
   ])
 );
 
 const hasExistingGoogleBusinessEn = boolToYesNo(
   pickFirst(formData, [
+    'hasGoogleBusinessProfileSite',
+    'hasGoogleBusinessProfileLP',
     'hasExistingGoogleBusiness',
     'ficheGoogleBusinessExistante',
     'existingGoogleBusiness',
-    'googleBusinessExisting',
-    'avezVousDejaUneFicheGoogleBusiness',
   ])
 );
 
 const createGoogleBusiness = boolToOuiNon(
   pickFirst(formData, [
+    'googleBusinessCreateSite',
+    'googleBusinessCreateLP',
     'createGoogleBusiness',
     'creationGoogleBusiness',
     'createGoogleBusinessProfile',
-    'souhaitezVousQueNousCreionsVotreFiche',
-    'creerVotreFicheGoogleBusiness',
   ])
 );
 
 const createGoogleBusinessEn = boolToYesNo(
   pickFirst(formData, [
+    'googleBusinessCreateSite',
+    'googleBusinessCreateLP',
     'createGoogleBusiness',
     'creationGoogleBusiness',
     'createGoogleBusinessProfile',
-    'souhaitezVousQueNousCreionsVotreFiche',
-    'creerVotreFicheGoogleBusiness',
   ])
 );
 
 const googleBusinessUrl = safe(
   pickFirst(formData, [
+    'googleBusinessUrlSite',
+    'googleBusinessUrlLP',
     'googleBusinessUrl',
     'lienFicheGoogleBusiness',
     'existingGoogleBusinessUrl',
-    'lienDeVotreFicheActuelle',
-    'currentGoogleBusinessLink',
-  ])
-);
-
-const googleBusinessGoal = safe(
-  pickFirst(formData, [
-    'googleBusinessGoal',
-    'souhaitezVousRelierVotreFuturSiteAVotrePresenceLocale',
-    'googleBusinessConnectionGoal',
-    'whatDoYouWantUsToDo',
-    'whatDoYouWantToImprove',
-    'futureSiteLocalConnection',
   ])
 );
 
 const googleBusinessImprove = safe(
   pickFirst(formData, [
+    'googleBusinessImproveSite',
+    'googleBusinessImproveLP',
     'googleBusinessImprove',
     'queSouhaitezVousAmeliorer',
     'whatDoYouWantToImprove',
-    'whatShouldWeImprove',
-    'whatShouldWeImproveOnIt',
+  ])
+);
+
+const googleBusinessGoal = safe(
+  pickFirst(formData, [
+    'googleBusinessLocalLinkSite',
+    'googleBusinessLocalLinkLP',
+    'googleBusinessGoal',
+    'souhaitezVousRelierVotreFuturSite',
+    'googleBusinessConnectionGoal',
+    'whatDoYouWantUsToDo',
   ])
 );
 
 const googleBusinessName = safe(
   pickFirst(formData, [
+    'googleBusinessBusinessNameSite',
+    'googleBusinessBusinessNameLP',
     'googleBusinessName',
     'nomEtablissement',
-    'nomEtablissementAffiche',
     'businessName',
-    'nomDeLEtablissementAffiche',
   ])
 );
 
 const googleBusinessAddress = safe(
   pickFirst(formData, [
+    'googleBusinessAreaSite',
+    'googleBusinessAreaLP',
     'googleBusinessAddress',
     'adresseZoneDesservie',
-    'adresseZoneDAcitivite',
-    'adresseZoneDesserVie',
     'businessAddress',
-    'adresseServiceArea',
   ])
 );
 
 const googleBusinessPhone = safe(
   pickFirst(formData, [
+    'googleBusinessPhoneSite',
+    'googleBusinessPhoneLP',
     'googleBusinessPhone',
     'telephoneGoogleBusiness',
-    'telephoneAfficheSurLaFiche',
     'businessPhone',
-    'phoneDisplayedOnProfile',
   ])
 );
 
 const googleBusinessWebsite = safe(
   pickFirst(formData, [
+    'googleBusinessWebsiteSite',
+    'googleBusinessWebsiteLP',
     'googleBusinessWebsite',
     'siteWebARelier',
-    'siteWebRelier',
     'businessWebsite',
-    'websiteToConnect',
   ])
 );
 
 const googleBusinessCategory = safe(
   pickFirst(formData, [
+    'googleBusinessCategorySite',
+    'googleBusinessCategoryLP',
     'googleBusinessCategory',
     'categorieActivite',
-    'categorieDActivite',
     'businessCategory',
   ])
 );
 
 const googleBusinessInfos = safe(
   pickFirst(formData, [
+    'googleBusinessInfoSite',
+    'googleBusinessInfoLP',
     'googleBusinessInfos',
     'informationsImportantesGoogleBusiness',
-    'informationsImportantesAAfficher',
     'businessImportantInfos',
-    'importantInformationToDisplay',
   ])
 );
-
     // Traduction automatique des champs libres pour le mail prestataire
     const translated = await translateTextsToEnglish({
       objectifLP,
@@ -628,33 +629,28 @@ const googleBusinessInfos = safe(
     String(value).trim() !== '-'
 );
 
-const googleBusinessHtml = hasGoogleBusinessDetails
-  ? `
-    <h3>Google Business</h3>
-    <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
-    <p><strong>Existing Google Business profile:</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
-    <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
-    <p><strong>Current profile link:</strong><br>${escapeHtml(translated.googleBusinessUrl)}</p>
-    <p><strong>Business name to use:</strong> ${escapeHtml(translated.googleBusinessName)}</p>
-    <p><strong>Address / service area:</strong> ${escapeHtml(translated.googleBusinessAddress)}</p>
-    <p><strong>Phone number to display:</strong> ${escapeHtml(translated.googleBusinessPhone)}</p>
-    <p><strong>Website to connect:</strong> ${escapeHtml(translated.googleBusinessWebsite)}</p>
-    <p><strong>Business category:</strong> ${escapeHtml(translated.googleBusinessCategory)}</p>
-    <p><strong>Important information to display:</strong><br>${escapeHtml(translated.googleBusinessInfos)}</p>
-    <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(translated.googleBusinessImprove)}</p>
-    <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(translated.googleBusinessGoal)}</p>
-  `
-  : `
-    <h3>Google Business</h3>
-    <p><strong>Google Business support needed:</strong> -</p>
-  `;
-
-   const rawFormDataHtml = `
-  <h3>DEBUG — Raw formData received</h3>
-  <pre style="white-space: pre-wrap; background:#f6f6f6; padding:12px; border-radius:8px; font-size:12px; line-height:1.5;">
-${escapeHtml(JSON.stringify(formData, null, 2))}
-  </pre>
-`;
+const googleBusinessHtml =
+  hasGoogleBusinessEn === 'Yes'
+    ? `
+      <h3>Google Business</h3>
+      <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
+      <p><strong>Existing Google Business profile:</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
+      <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
+      <p><strong>Current profile link:</strong><br>${escapeHtml(googleBusinessUrl)}</p>
+      <p><strong>Business name to use:</strong> ${escapeHtml(googleBusinessName)}</p>
+      <p><strong>Address / service area:</strong> ${escapeHtml(googleBusinessAddress)}</p>
+      <p><strong>Phone number to display:</strong> ${escapeHtml(googleBusinessPhone)}</p>
+      <p><strong>Website to connect:</strong> ${escapeHtml(googleBusinessWebsite)}</p>
+      <p><strong>Business category:</strong> ${escapeHtml(googleBusinessCategory)}</p>
+      <p><strong>Important information to display:</strong><br>${escapeHtml(googleBusinessInfos)}</p>
+      <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(googleBusinessImprove)}</p>
+      <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(googleBusinessGoal)}</p>
+    `
+    : `
+      <h3>Google Business</h3>
+      <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
+    `;
+    
     const kpsEmailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin-bottom: 16px;">📩 New Brief Received - KPS Agency</h2>
@@ -699,8 +695,6 @@ ${escapeHtml(JSON.stringify(formData, null, 2))}
         <h3>Final notes</h3>
         <p><strong>Specific constraints:</strong><br>${escapeHtml(translated.contraintes)}</p>
         <p><strong>Commercial terms confirmed:</strong> ${escapeHtml(confirmationEn)}</p>
-        <hr style="margin: 20px 0;" />
-${rawFormDataHtml}
       </div>
     `;
 
