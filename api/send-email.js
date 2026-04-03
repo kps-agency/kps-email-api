@@ -619,27 +619,47 @@ export default async function handler(req, res) {
         <p><strong>Useful links:</strong><br>${escapeHtml(translated.liensUtiles)}</p>
       `;
 
-    const googleBusinessHtml =
-      hasGoogleBusinessEn === 'Yes'
-        ? `
-          <h3>Google Business</h3>
-          <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
-          <p><strong>Existing Google Business profile:</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
-          <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
-          <p><strong>Current profile link:</strong><br>${escapeHtml(translated.googleBusinessUrl)}</p>
-          <p><strong>Business name to use:</strong> ${escapeHtml(translated.googleBusinessName)}</p>
-          <p><strong>Address / service area:</strong> ${escapeHtml(translated.googleBusinessAddress)}</p>
-          <p><strong>Phone number to display:</strong> ${escapeHtml(translated.googleBusinessPhone)}</p>
-          <p><strong>Website to connect:</strong> ${escapeHtml(translated.googleBusinessWebsite)}</p>
-          <p><strong>Business category:</strong> ${escapeHtml(translated.googleBusinessCategory)}</p>
-          <p><strong>Important information to display:</strong><br>${escapeHtml(translated.googleBusinessInfos)}</p>
-          <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(translated.googleBusinessImprove)}</p>
-          <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(translated.googleBusinessGoal)}</p>
-        `
-        : `
-          <h3>Google Business</h3>
-          <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
-        `;
+   const hasGoogleBusinessDetails = [
+  hasGoogleBusinessEn,
+  hasExistingGoogleBusinessEn,
+  createGoogleBusinessEn,
+  translated.googleBusinessUrl,
+  translated.googleBusinessName,
+  translated.googleBusinessAddress,
+  translated.googleBusinessPhone,
+  translated.googleBusinessWebsite,
+  translated.googleBusinessCategory,
+  translated.googleBusinessInfos,
+  translated.googleBusinessImprove,
+  translated.googleBusinessGoal,
+].some(
+  (value) =>
+    value !== undefined &&
+    value !== null &&
+    String(value).trim() !== '' &&
+    String(value).trim() !== '-'
+);
+
+const googleBusinessHtml = hasGoogleBusinessDetails
+  ? `
+    <h3>Google Business</h3>
+    <p><strong>Google Business support needed:</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
+    <p><strong>Existing Google Business profile:</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
+    <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
+    <p><strong>Current profile link:</strong><br>${escapeHtml(translated.googleBusinessUrl)}</p>
+    <p><strong>Business name to use:</strong> ${escapeHtml(translated.googleBusinessName)}</p>
+    <p><strong>Address / service area:</strong> ${escapeHtml(translated.googleBusinessAddress)}</p>
+    <p><strong>Phone number to display:</strong> ${escapeHtml(translated.googleBusinessPhone)}</p>
+    <p><strong>Website to connect:</strong> ${escapeHtml(translated.googleBusinessWebsite)}</p>
+    <p><strong>Business category:</strong> ${escapeHtml(translated.googleBusinessCategory)}</p>
+    <p><strong>Important information to display:</strong><br>${escapeHtml(translated.googleBusinessInfos)}</p>
+    <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(translated.googleBusinessImprove)}</p>
+    <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(translated.googleBusinessGoal)}</p>
+  `
+  : `
+    <h3>Google Business</h3>
+    <p><strong>Google Business support needed:</strong> -</p>
+  `;
 
     const kpsEmailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
