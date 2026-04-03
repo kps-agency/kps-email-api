@@ -699,6 +699,8 @@ ${escapeHtml(JSON.stringify(formData, null, 2))}
         <h3>Final notes</h3>
         <p><strong>Specific constraints:</strong><br>${escapeHtml(translated.contraintes)}</p>
         <p><strong>Commercial terms confirmed:</strong> ${escapeHtml(confirmationEn)}</p>
+        <hr style="margin: 20px 0;" />
+${rawFormDataHtml}
       </div>
     `;
 
