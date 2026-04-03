@@ -359,156 +359,172 @@ console.log('=== HANDLER VERSION OK ===');
 // Google Business
 const hasGoogleBusiness = boolToOuiNon(
   pickFirst(formData, [
-    'googleBusinessNeededSite',
-    'googleBusinessNeededLP',
     'hasGoogleBusiness',
     'besoinGoogleBusiness',
     'googleBusinessNeeded',
     'googleBusinessSupport',
+    'googleBusinessNeededLP',
+    'googleBusinessNeededSite'
   ])
 );
 
 const hasGoogleBusinessEn = boolToYesNo(
   pickFirst(formData, [
-    'googleBusinessNeededSite',
-    'googleBusinessNeededLP',
     'hasGoogleBusiness',
     'besoinGoogleBusiness',
     'googleBusinessNeeded',
     'googleBusinessSupport',
+    'googleBusinessNeededLP',
+    'googleBusinessNeededSite'
   ])
 );
 
 const hasExistingGoogleBusiness = boolToOuiNon(
   pickFirst(formData, [
-    'hasGoogleBusinessProfileSite',
-    'hasGoogleBusinessProfileLP',
     'hasExistingGoogleBusiness',
     'ficheGoogleBusinessExistante',
     'existingGoogleBusiness',
+    'hasGoogleBusinessProfileLP',
+    'hasGoogleBusinessProfileSite'
   ])
 );
 
 const hasExistingGoogleBusinessEn = boolToYesNo(
   pickFirst(formData, [
-    'hasGoogleBusinessProfileSite',
-    'hasGoogleBusinessProfileLP',
     'hasExistingGoogleBusiness',
     'ficheGoogleBusinessExistante',
     'existingGoogleBusiness',
+    'hasGoogleBusinessProfileLP',
+    'hasGoogleBusinessProfileSite'
   ])
 );
 
 const createGoogleBusiness = boolToOuiNon(
   pickFirst(formData, [
-    'googleBusinessCreateSite',
-    'googleBusinessCreateLP',
     'createGoogleBusiness',
     'creationGoogleBusiness',
     'createGoogleBusinessProfile',
+    'googleBusinessCreateLP',
+    'googleBusinessCreateSite'
   ])
 );
 
 const createGoogleBusinessEn = boolToYesNo(
   pickFirst(formData, [
-    'googleBusinessCreateSite',
-    'googleBusinessCreateLP',
     'createGoogleBusiness',
     'creationGoogleBusiness',
     'createGoogleBusinessProfile',
+    'googleBusinessCreateLP',
+    'googleBusinessCreateSite'
   ])
 );
 
 const googleBusinessUrl = safe(
   pickFirst(formData, [
-    'googleBusinessUrlSite',
-    'googleBusinessUrlLP',
     'googleBusinessUrl',
     'lienFicheGoogleBusiness',
     'existingGoogleBusinessUrl',
+    'googleBusinessUrlLP',
+    'googleBusinessUrlSite'
   ])
 );
 
 const googleBusinessImprove = safe(
   pickFirst(formData, [
-    'googleBusinessImproveSite',
-    'googleBusinessImproveLP',
     'googleBusinessImprove',
     'queSouhaitezVousAmeliorer',
     'whatDoYouWantToImprove',
-  ])
-);
-
-const googleBusinessGoal = safe(
-  pickFirst(formData, [
-    'googleBusinessLocalLinkSite',
-    'googleBusinessLocalLinkLP',
-    'googleBusinessGoal',
-    'souhaitezVousRelierVotreFuturSite',
-    'googleBusinessConnectionGoal',
-    'whatDoYouWantUsToDo',
+    'googleBusinessImproveLP',
+    'googleBusinessImproveSite'
   ])
 );
 
 const googleBusinessName = safe(
   pickFirst(formData, [
-    'googleBusinessBusinessNameSite',
-    'googleBusinessBusinessNameLP',
     'googleBusinessName',
     'nomEtablissement',
     'businessName',
+    'googleBusinessBusinessNameLP',
+    'googleBusinessBusinessNameSite'
   ])
 );
 
 const googleBusinessAddress = safe(
   pickFirst(formData, [
-    'googleBusinessAreaSite',
-    'googleBusinessAreaLP',
     'googleBusinessAddress',
     'adresseZoneDesservie',
     'businessAddress',
+    'googleBusinessAreaLP',
+    'googleBusinessAreaSite'
   ])
 );
 
 const googleBusinessPhone = safe(
   pickFirst(formData, [
-    'googleBusinessPhoneSite',
-    'googleBusinessPhoneLP',
     'googleBusinessPhone',
     'telephoneGoogleBusiness',
     'businessPhone',
+    'googleBusinessPhoneLP',
+    'googleBusinessPhoneSite'
   ])
 );
 
 const googleBusinessWebsite = safe(
   pickFirst(formData, [
-    'googleBusinessWebsiteSite',
-    'googleBusinessWebsiteLP',
     'googleBusinessWebsite',
     'siteWebARelier',
     'businessWebsite',
+    'googleBusinessWebsiteLP',
+    'googleBusinessWebsiteSite'
   ])
 );
 
 const googleBusinessCategory = safe(
   pickFirst(formData, [
-    'googleBusinessCategorySite',
-    'googleBusinessCategoryLP',
     'googleBusinessCategory',
     'categorieActivite',
     'businessCategory',
+    'googleBusinessCategoryLP',
+    'googleBusinessCategorySite'
   ])
 );
 
 const googleBusinessInfos = safe(
   pickFirst(formData, [
-    'googleBusinessInfoSite',
-    'googleBusinessInfoLP',
     'googleBusinessInfos',
     'informationsImportantesGoogleBusiness',
     'businessImportantInfos',
+    'googleBusinessInfoLP',
+    'googleBusinessInfoSite'
   ])
 );
+
+const googleBusinessGoal = safe(
+  pickFirst(formData, [
+    'googleBusinessGoal',
+    'souhaitezVousRelierVotreFuturSite',
+    'googleBusinessConnectionGoal',
+    'googleBusinessLocalLinkLP',
+    'googleBusinessLocalLinkSite'
+  ])
+);
+
+const hasGoogleBusinessDetails =
+  hasGoogleBusinessEn === 'Yes' &&
+  (
+    hasExistingGoogleBusinessEn === 'Yes' ||
+    createGoogleBusinessEn === 'Yes' ||
+    googleBusinessUrl !== '-' ||
+    googleBusinessName !== '-' ||
+    googleBusinessAddress !== '-' ||
+    googleBusinessPhone !== '-' ||
+    googleBusinessWebsite !== '-' ||
+    googleBusinessCategory !== '-' ||
+    googleBusinessInfos !== '-' ||
+    googleBusinessImprove !== '-' ||
+    googleBusinessGoal !== '-'
+  );
+    
     // Traduction automatique des champs libres pour le mail prestataire
     const translated = await translateTextsToEnglish({
       objectifLP,
