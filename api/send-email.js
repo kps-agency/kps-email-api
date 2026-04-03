@@ -649,6 +649,12 @@ const googleBusinessHtml = hasGoogleBusinessDetails
     <p><strong>Google Business support needed:</strong> -</p>
   `;
 
+   const rawFormDataHtml = `
+  <h3>DEBUG — Raw formData received</h3>
+  <pre style="white-space: pre-wrap; background:#f6f6f6; padding:12px; border-radius:8px; font-size:12px; line-height:1.5;">
+${escapeHtml(JSON.stringify(formData, null, 2))}
+  </pre>
+`;
     const kpsEmailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin-bottom: 16px;">📩 New Brief Received - KPS Agency</h2>
