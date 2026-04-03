@@ -355,59 +355,62 @@ export default async function handler(req, res) {
       pickFirst(formData, ['couleurs', 'branding', 'colorsBranding'])
     );
 
-    // Google Business
-    const hasGoogleBusiness = boolToOuiNon(
-      pickFirst(formData, [
-        'hasGoogleBusiness',
-        'besoinGoogleBusiness',
-        'googleBusinessNeeded',
-        'googleBusinessSupport',
-      ])
-    );
-    const hasGoogleBusinessEn = boolToYesNo(
-      pickFirst(formData, [
-        'hasGoogleBusiness',
-        'besoinGoogleBusiness',
-        'googleBusinessNeeded',
-        'googleBusinessSupport',
-      ])
-    );
+// Google Business
+    const hasGoogleBusinessRaw = pickFirst(formData, [
+      'hasGoogleBusiness',
+      'besoinGoogleBusiness',
+      'googleBusinessNeeded',
+      'googleBusinessSupport',
+      'googleBusinessSupportNeeded',
+      'googleBusinessHelp',
+      'googleBusinessAccompagnement',
+      'accompagnementGoogleBusiness',
+      'gestionGoogleBusiness',
+      'gestionOuCreationGoogleBusiness',
+      'besoinAccompagnementGoogleBusiness'
+    ]);
 
-    const hasExistingGoogleBusiness = boolToOuiNon(
-      pickFirst(formData, [
-        'hasExistingGoogleBusiness',
-        'ficheGoogleBusinessExistante',
-        'existingGoogleBusiness',
-      ])
-    );
-    const hasExistingGoogleBusinessEn = boolToYesNo(
-      pickFirst(formData, [
-        'hasExistingGoogleBusiness',
-        'ficheGoogleBusinessExistante',
-        'existingGoogleBusiness',
-      ])
-    );
+    const hasGoogleBusiness = boolToOuiNon(hasGoogleBusinessRaw);
+    const hasGoogleBusinessEn = boolToYesNo(hasGoogleBusinessRaw);
 
-    const createGoogleBusiness = boolToOuiNon(
-      pickFirst(formData, [
-        'createGoogleBusiness',
-        'creationGoogleBusiness',
-        'createGoogleBusinessProfile',
-      ])
-    );
-    const createGoogleBusinessEn = boolToYesNo(
-      pickFirst(formData, [
-        'createGoogleBusiness',
-        'creationGoogleBusiness',
-        'createGoogleBusinessProfile',
-      ])
-    );
+    const hasExistingGoogleBusinessRaw = pickFirst(formData, [
+      'hasExistingGoogleBusiness',
+      'ficheGoogleBusinessExistante',
+      'existingGoogleBusiness',
+      'googleBusinessExisting',
+      'existingBusinessProfile',
+      'aDejaUneFicheGoogleBusiness',
+      'alreadyHasGoogleBusiness',
+      'hasGoogleBusinessProfile'
+    ]);
+
+    const hasExistingGoogleBusiness = boolToOuiNon(hasExistingGoogleBusinessRaw);
+    const hasExistingGoogleBusinessEn = boolToYesNo(hasExistingGoogleBusinessRaw);
+
+    const createGoogleBusinessRaw = pickFirst(formData, [
+      'createGoogleBusiness',
+      'creationGoogleBusiness',
+      'createGoogleBusinessProfile',
+      'googleBusinessCreation',
+      'souhaitezVousQueNousCreionsVotreFiche',
+      'souhaitezVousUneCreationDeFicheGoogleBusiness',
+      'createBusinessProfile',
+      'needGoogleBusinessCreation'
+    ]);
+
+    const createGoogleBusiness = boolToOuiNon(createGoogleBusinessRaw);
+    const createGoogleBusinessEn = boolToYesNo(createGoogleBusinessRaw);
 
     const googleBusinessUrl = safe(
       pickFirst(formData, [
         'googleBusinessUrl',
         'lienFicheGoogleBusiness',
         'existingGoogleBusinessUrl',
+        'googleBusinessLink',
+        'businessProfileUrl',
+        'lienDeLaFicheActuelle',
+        'lienVotreFicheActuelle',
+        'googleBusinessProfileUrl'
       ])
     );
 
@@ -418,6 +421,10 @@ export default async function handler(req, res) {
         'googleBusinessConnectionGoal',
         'whatDoYouWantUsToDo',
         'whatDoYouWantToImprove',
+        'relierFuturSitePresenceLocale',
+        'relierVotreFuturSiteAPresenceLocale',
+        'googleBusinessLocalGoal',
+        'googleBusinessSeoGoal'
       ])
     );
 
@@ -426,6 +433,10 @@ export default async function handler(req, res) {
         'googleBusinessImprove',
         'queSouhaitezVousAmeliorer',
         'whatDoYouWantToImprove',
+        'googleBusinessOptimization',
+        'optimisationGoogleBusiness',
+        'googleBusinessWorkNeeded',
+        'ameliorationsGoogleBusiness'
       ])
     );
 
@@ -434,6 +445,11 @@ export default async function handler(req, res) {
         'googleBusinessName',
         'nomEtablissement',
         'businessName',
+        'nomDeLEtablissement',
+        'nomDeLEtablissementAffiche',
+        'nomPublicEtablissement',
+        'establishmentName',
+        'displayBusinessName'
       ])
     );
 
@@ -442,6 +458,12 @@ export default async function handler(req, res) {
         'googleBusinessAddress',
         'adresseZoneDesservie',
         'businessAddress',
+        'adresse',
+        'zoneDesservie',
+        'adresseCompleteZoneCouverte',
+        'addressOrServiceArea',
+        'serviceArea',
+        'adresseComplete'
       ])
     );
 
@@ -450,6 +472,12 @@ export default async function handler(req, res) {
         'googleBusinessPhone',
         'telephoneGoogleBusiness',
         'businessPhone',
+        'telephone',
+        'telephoneAffiche',
+        'telephoneAfficheSurLaFiche',
+        'numeroVisibleClients',
+        'displayPhone',
+        'publicPhone'
       ])
     );
 
@@ -458,6 +486,11 @@ export default async function handler(req, res) {
         'googleBusinessWebsite',
         'siteWebARelier',
         'businessWebsite',
+        'websiteToLink',
+        'siteWeb',
+        'siteWebRelie',
+        'siteWebRelier',
+        'linkedWebsite'
       ])
     );
 
@@ -466,6 +499,10 @@ export default async function handler(req, res) {
         'googleBusinessCategory',
         'categorieActivite',
         'businessCategory',
+        'categorie',
+        'categorieDActivite',
+        'activityCategory',
+        'businessType'
       ])
     );
 
@@ -474,6 +511,11 @@ export default async function handler(req, res) {
         'googleBusinessInfos',
         'informationsImportantesGoogleBusiness',
         'businessImportantInfos',
+        'informationsImportantes',
+        'infosImportantes',
+        'importantInfosToDisplay',
+        'businessInfos',
+        'informationsImportantesAAfficher'
       ])
     );
 
