@@ -24,6 +24,16 @@ function escapeHtml(str) {
     .replace(/\n/g, '<br>');
 }
 
+function pickFirst(obj, keys) {
+  for (const key of keys) {
+    const value = obj?.[key];
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
+    }
+  }
+  return undefined;
+}
+
 function normalizeAttachments(formData) {
   const attachments = [];
 
@@ -110,165 +120,358 @@ export default async function handler(req, res) {
 
     const attachments = normalizeAttachments(formData);
 
-    console.log('=== uploadedFiles count ===', [
-      formData?.logoAttachment ? 1 : 0,
-      ...(Array.isArray(formData?.imageAttachments) ? formData.imageAttachments.map(() => 1) : []),
-    ].reduce((a, b) => a + b, 0));
+    console.log(
+      '=== uploadedFiles count ===',
+      [
+        formData?.logoAttachment ? 1 : 0,
+        ...(Array.isArray(formData?.imageAttachments) ? formData.imageAttachments.map(() => 1) : []),
+      ].reduce((a, b) => a + b, 0)
+    );
 
     console.log('=== attachments prepared ===', attachments.length);
 
-    // Infos client
+    // Client info
     const nom = safe(formData.nom);
     const email = safe(formData.email);
     const telephone = safe(formData.telephone);
     const entreprise = safe(formData.entreprise);
 
-    // Champs communs
-    const deadline = safe(formData.deadline);
-    const contraintes = safe(formData.contraintes);
+    // Common
+    const contraintes = safe(
+      pickFirst(formData, ['contraintes', 'contraintesSpecifiques'])
+    );
     const confirmation = boolToOuiNon(formData.confirmation);
 
-    // Champs Landing Page
-    const objectifLP = safe(formData.objectifLP);
-    const offreService = safe(formData.offreService);
-    const cibleLP = safe(formData.cibleLP);
-    const descLP = safe(formData.descLP);
-    const actionAttendue = safe(formData.actionAttendue);
+    // Landing Page
+    const objectifLP = safe(
+      pickFirst(formData, ['objectifLP', 'objectifLp'])
+    );
+    const offreService = safe(
+      pickFirst(formData, ['offreService', 'offreMiseEnAvant', 'serviceMiseEnAvant'])
+    );
+    const cibleLP = safe(
+      pickFirst(formData, ['cibleLP', 'cibleLp'])
+    );
+    const descLP = safe(
+      pickFirst(formData, ['descLP', 'descLp', 'descriptionLP', 'descriptionLp'])
+    );
+    const actionAttendue = safe(
+      pickFirst(formData, ['actionAttendue', 'objectifConversion', 'actionVisiteur'])
+    );
 
-    // Champs Site complet
-    const objectifSite = safe(formData.objectifSite);
-    const cibleSite = safe(formData.cibleSite);
-    const descSite = safe(formData.descSite);
-    const pagesSite = safe(formData.pagesSite);
-    const hasWebsite = boolToOuiNon(formData.hasWebsite);
-    const websiteUrl = safe(formData.websiteUrl);
-    const hasDomain = boolToOuiNon(formData.hasDomain);
-    const domainName = safe(formData.domainName);
-    const hasContent = boolToOuiNon(formData.hasContent);
-    const missingElements = safe(formData.missingElements);
+    // Full website
+    const objectifSite = safe(pickFirst(formData, ['objectifSite']));
+    const cibleSite = safe(pickFirst(formData, ['cibleSite']));
+    const descSite = safe(pickFirst(formData, ['descSite', 'descriptionSite']));
+    const pagesSite = safe(
+      pickFirst(formData, ['pagesSite', 'sectionsSite', 'pagesSections'])
+    );
+    const hasWebsite = boolToOuiNon(
+      pickFirst(formData, ['hasWebsite', 'siteExistant'])
+    );
+    const websiteUrl = safe(
+      pickFirst(formData, ['websiteUrl', 'urlExistante', 'siteUrl'])
+    );
+    const hasDomain = boolToOuiNon(
+      pickFirst(formData, ['hasDomain', 'domaineReserve'])
+    );
+    const domainName = safe(
+      pickFirst(formData, ['domainName', 'nomDomaine'])
+    );
+    const hasContent = boolToOuiNon(
+      pickFirst(formData, ['hasContent', 'contenusPrets'])
+    );
+    const missingElements = safe(
+      pickFirst(formData, ['missingElements', 'elementsManquants'])
+    );
 
-    // Ressources / contenu
-    const hasTexts = boolToOuiNon(formData.hasTexts);
-    const textesFournis = safe(formData.textesFournis);
-    const hasLogo = boolToOuiNon(formData.hasLogo);
-    const hasImages = boolToOuiNon(formData.hasImages);
-    const nombreImages = safe(formData.nombreImages);
-    const liensUtiles = safe(formData.liensUtiles);
-    const inspirations = safe(formData.inspirations);
-    const couleurs = safe(formData.couleurs);
+    // Resources / content
+    const hasTexts = boolToOuiNon(
+      pickFirst(formData, ['hasTexts', 'textesPrets'])
+    );
+    const textesFournis = safe(pickFirst(formData, ['textesFournis']));
+    const hasLogo = boolToOuiNon(
+      pickFirst(formData, ['hasLogo', 'logoDisponible'])
+    );
+    const hasImages = boolToOuiNon(
+      pickFirst(formData, ['hasImages', 'visuelsDisponibles'])
+    );
+    const nombreImages = safe(pickFirst(formData, ['nombreImages']));
+    const liensUtiles = safe(pickFirst(formData, ['liensUtiles']));
+    const inspirations = safe(pickFirst(formData, ['inspirations']));
+    const couleurs = safe(
+      pickFirst(formData, ['couleurs', 'branding', 'couleursBranding'])
+    );
+
+    // Google Business Profile
+    const gbNeeded = boolToOuiNon(
+      pickFirst(formData, [
+        'googleBusinessNeeded',
+        'googleBusinessSupport',
+        'besoinGoogleBusiness',
+        'hasGoogleBusiness',
+      ])
+    );
+
+    const gbHasExisting = boolToOuiNon(
+      pickFirst(formData, [
+        'googleBusinessExisting',
+        'hasExistingGoogleBusiness',
+        'hasGoogleBusinessProfile',
+        'googleBusinessExists',
+      ])
+    );
+
+    const gbCreateNew = boolToOuiNon(
+      pickFirst(formData, [
+        'googleBusinessCreate',
+        'createGoogleBusiness',
+        'createGoogleBusinessProfile',
+        'souhaiteCreationGoogleBusiness',
+      ])
+    );
+
+    const gbProfileUrl = safe(
+      pickFirst(formData, [
+        'googleBusinessUrl',
+        'googleBusinessProfileUrl',
+        'lienFicheGoogleBusiness',
+        'gbProfileUrl',
+      ])
+    );
+
+    const gbImproveWhat = safe(
+      pickFirst(formData, [
+        'googleBusinessImproveWhat',
+        'googleBusinessNeeds',
+        'ameliorationGoogleBusiness',
+        'queSouhaitezVousAmeliorer',
+      ])
+    );
+
+    const gbBusinessName = safe(
+      pickFirst(formData, [
+        'googleBusinessBusinessName',
+        'gbBusinessName',
+        'nomEtablissement',
+        'nomEtablissementAffiche',
+      ])
+    );
+
+    const gbAddress = safe(
+      pickFirst(formData, [
+        'googleBusinessAddress',
+        'gbAddress',
+        'adresseZoneDesservie',
+        'adresseZoneActivite',
+      ])
+    );
+
+    const gbPhone = safe(
+      pickFirst(formData, [
+        'googleBusinessPhone',
+        'gbPhone',
+        'telephoneGoogleBusiness',
+        'telephoneAfficheFiche',
+      ])
+    );
+
+    const gbWebsite = safe(
+      pickFirst(formData, [
+        'googleBusinessWebsite',
+        'gbWebsite',
+        'siteWebARelier',
+      ])
+    );
+
+    const gbCategory = safe(
+      pickFirst(formData, [
+        'googleBusinessCategory',
+        'gbCategory',
+        'categorieActivite',
+      ])
+    );
+
+    const gbImportantInfo = safe(
+      pickFirst(formData, [
+        'googleBusinessImportantInfo',
+        'gbImportantInfo',
+        'informationsImportantes',
+        'informationsImportantesAfficher',
+      ])
+    );
+
+    const gbLinkWithSite = safe(
+      pickFirst(formData, [
+        'googleBusinessLinkWithSite',
+        'gbLinkWithSite',
+        'relierSitePresenceLocale',
+      ])
+    );
 
     const uploadedFilesHtml = buildUploadedFilesHtml(formData);
 
-    const projetHtml = isLandingPage
+    const projectHtml = isLandingPage
       ? `
-        <h3>Projet</h3>
-        <p><strong>Offre :</strong> ${escapeHtml(offre)}</p>
-        <p><strong>Type d'offre :</strong> Landing Page</p>
-        <p><strong>Objectif :</strong> ${escapeHtml(objectifLP)}</p>
-        <p><strong>Offre / service mis en avant :</strong> ${escapeHtml(offreService)}</p>
-        <p><strong>Cible :</strong> ${escapeHtml(cibleLP)}</p>
-        <p><strong>Description :</strong><br>${escapeHtml(descLP)}</p>
-        <p><strong>Action attendue du visiteur :</strong> ${escapeHtml(actionAttendue)}</p>
-        <p><strong>Pages / sections souhaitées :</strong> -</p>
-        <p><strong>Nombre de pages :</strong> -</p>
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Project</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="padding:8px 0; font-weight:700; width:220px;">Offer</td><td style="padding:8px 0;">${escapeHtml(offre)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Offer type</td><td style="padding:8px 0;">Landing Page</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Main goal</td><td style="padding:8px 0;">${escapeHtml(objectifLP)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Offer / service highlighted</td><td style="padding:8px 0;">${escapeHtml(offreService)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Target audience</td><td style="padding:8px 0;">${escapeHtml(cibleLP)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Project description</td><td style="padding:8px 0;">${escapeHtml(descLP)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Expected visitor action</td><td style="padding:8px 0;">${escapeHtml(actionAttendue)}</td></tr>
+        </table>
       `
       : `
-        <h3>Projet</h3>
-        <p><strong>Offre :</strong> ${escapeHtml(offre)}</p>
-        <p><strong>Type d'offre :</strong> Site Internet Complet</p>
-        <p><strong>Objectif :</strong> ${escapeHtml(objectifSite)}</p>
-        <p><strong>Offre / service mis en avant :</strong> -</p>
-        <p><strong>Cible :</strong> ${escapeHtml(cibleSite)}</p>
-        <p><strong>Description :</strong><br>${escapeHtml(descSite)}</p>
-        <p><strong>Action attendue du visiteur :</strong> -</p>
-        <p><strong>Pages / sections souhaitées :</strong><br>${escapeHtml(pagesSite)}</p>
-        <p><strong>Nombre de pages :</strong> -</p>
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Project</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="padding:8px 0; font-weight:700; width:220px;">Offer</td><td style="padding:8px 0;">${escapeHtml(offre)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Offer type</td><td style="padding:8px 0;">Full Website</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Main goal</td><td style="padding:8px 0;">${escapeHtml(objectifSite)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Target audience</td><td style="padding:8px 0;">${escapeHtml(cibleSite)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Project description</td><td style="padding:8px 0;">${escapeHtml(descSite)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Requested pages / sections</td><td style="padding:8px 0;">${escapeHtml(pagesSite)}</td></tr>
+        </table>
       `;
 
-    const siteDomaineHtml = isLandingPage
+    const websiteDomainHtml = isLandingPage
       ? `
-        <h3>Site existant / domaine</h3>
-        <p><strong>Site existant :</strong> -</p>
-        <p><strong>URL existante :</strong> -</p>
-        <p><strong>Domaine déjà réservé :</strong> ${escapeHtml(hasDomain)}</p>
-        <p><strong>Nom de domaine :</strong> ${escapeHtml(domainName)}</p>
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Website / domain</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="padding:8px 0; font-weight:700; width:220px;">Existing website</td><td style="padding:8px 0;">-</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Existing URL</td><td style="padding:8px 0;">-</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Domain already booked</td><td style="padding:8px 0;">${escapeHtml(hasDomain)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Domain name</td><td style="padding:8px 0;">${escapeHtml(domainName)}</td></tr>
+        </table>
       `
       : `
-        <h3>Site existant / domaine</h3>
-        <p><strong>Site existant :</strong> ${escapeHtml(hasWebsite)}</p>
-        <p><strong>URL existante :</strong> ${escapeHtml(websiteUrl)}</p>
-        <p><strong>Domaine déjà réservé :</strong> ${escapeHtml(hasDomain)}</p>
-        <p><strong>Nom de domaine :</strong> ${escapeHtml(domainName)}</p>
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Website / domain</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="padding:8px 0; font-weight:700; width:220px;">Existing website</td><td style="padding:8px 0;">${escapeHtml(hasWebsite)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Existing URL</td><td style="padding:8px 0;">${escapeHtml(websiteUrl)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Domain already booked</td><td style="padding:8px 0;">${escapeHtml(hasDomain)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Domain name</td><td style="padding:8px 0;">${escapeHtml(domainName)}</td></tr>
+        </table>
       `;
 
-    const contenuDesignHtml = isLandingPage
+    const contentDesignHtml = isLandingPage
       ? `
-        <h3>Contenu / design</h3>
-        <p><strong>Inspirations :</strong><br>${escapeHtml(inspirations)}</p>
-        <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs)}</p>
-        <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTexts)}</p>
-        <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(hasLogo)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(hasImages)}</p>
-        <p><strong>Nombre d'images :</strong> ${escapeHtml(nombreImages)}</p>
-        <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Content / design</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="padding:8px 0; font-weight:700; width:220px;">Design inspirations</td><td style="padding:8px 0;">${escapeHtml(inspirations)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Colors / branding</td><td style="padding:8px 0;">${escapeHtml(couleurs)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Texts already prepared</td><td style="padding:8px 0;">${escapeHtml(hasTexts)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Texts provided</td><td style="padding:8px 0;">${escapeHtml(textesFournis)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Logo available</td><td style="padding:8px 0;">${escapeHtml(hasLogo)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Images / visuals available</td><td style="padding:8px 0;">${escapeHtml(hasImages)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Number of images</td><td style="padding:8px 0;">${escapeHtml(nombreImages)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Useful links</td><td style="padding:8px 0;">${escapeHtml(liensUtiles)}</td></tr>
+        </table>
       `
       : `
-        <h3>Contenu / design</h3>
-        <p><strong>Inspirations :</strong><br>${escapeHtml(inspirations)}</p>
-        <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs)}</p>
-        <p><strong>Contenus déjà prêts :</strong> ${escapeHtml(hasContent)}</p>
-        <p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements)}</p>
-        <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTexts)}</p>
-        <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(hasLogo)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(hasImages)}</p>
-        <p><strong>Nombre d'images :</strong> ${escapeHtml(nombreImages)}</p>
-        <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Content / design</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="padding:8px 0; font-weight:700; width:220px;">Design inspirations</td><td style="padding:8px 0;">${escapeHtml(inspirations)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Colors / branding</td><td style="padding:8px 0;">${escapeHtml(couleurs)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Content already prepared</td><td style="padding:8px 0;">${escapeHtml(hasContent)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Missing elements</td><td style="padding:8px 0;">${escapeHtml(missingElements)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Texts already prepared</td><td style="padding:8px 0;">${escapeHtml(hasTexts)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Texts provided</td><td style="padding:8px 0;">${escapeHtml(textesFournis)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Logo available</td><td style="padding:8px 0;">${escapeHtml(hasLogo)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Images / visuals available</td><td style="padding:8px 0;">${escapeHtml(hasImages)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Number of images</td><td style="padding:8px 0;">${escapeHtml(nombreImages)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Useful links</td><td style="padding:8px 0;">${escapeHtml(liensUtiles)}</td></tr>
+        </table>
       `;
+
+    const googleBusinessHtml = gbNeeded === 'Oui'
+      ? `
+        <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Google Business Profile</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="padding:8px 0; font-weight:700; width:220px;">Google Business support needed</td><td style="padding:8px 0;">${escapeHtml(gbNeeded)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Existing profile</td><td style="padding:8px 0;">${escapeHtml(gbHasExisting)}</td></tr>
+          <tr><td style="padding:8px 0; font-weight:700;">Create new profile</td><td style="padding:8px 0;">${escapeHtml(gbCreateNew)}</td></tr>
+
+          ${
+            gbHasExisting === 'Oui'
+              ? `
+                <tr><td style="padding:8px 0; font-weight:700;">Current profile URL</td><td style="padding:8px 0;">${escapeHtml(gbProfileUrl)}</td></tr>
+                <tr><td style="padding:8px 0; font-weight:700;">Requested improvements</td><td style="padding:8px 0;">${escapeHtml(gbImproveWhat)}</td></tr>
+              `
+              : ''
+          }
+
+          ${
+            gbCreateNew === 'Oui'
+              ? `
+                <tr><td style="padding:8px 0; font-weight:700;">Business name</td><td style="padding:8px 0;">${escapeHtml(gbBusinessName)}</td></tr>
+                <tr><td style="padding:8px 0; font-weight:700;">Address / service area</td><td style="padding:8px 0;">${escapeHtml(gbAddress)}</td></tr>
+                <tr><td style="padding:8px 0; font-weight:700;">Public phone</td><td style="padding:8px 0;">${escapeHtml(gbPhone)}</td></tr>
+                <tr><td style="padding:8px 0; font-weight:700;">Website to connect</td><td style="padding:8px 0;">${escapeHtml(gbWebsite)}</td></tr>
+                <tr><td style="padding:8px 0; font-weight:700;">Business category</td><td style="padding:8px 0;">${escapeHtml(gbCategory)}</td></tr>
+                <tr><td style="padding:8px 0; font-weight:700;">Important info to display</td><td style="padding:8px 0;">${escapeHtml(gbImportantInfo)}</td></tr>
+              `
+              : ''
+          }
+
+          <tr><td style="padding:8px 0; font-weight:700;">Connection with website / local presence</td><td style="padding:8px 0;">${escapeHtml(gbLinkWithSite)}</td></tr>
+        </table>
+      `
+      : '';
 
     const kpsEmailHtml = `
-      <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
-        <h2 style="margin-bottom: 16px;">📩 Nouveau Brief Reçu - KPS Agency</h2>
+      <div style="margin:0; padding:24px; background:#f3f4f6; font-family:Arial, sans-serif; color:#111827; line-height:1.6;">
+        <div style="max-width:900px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #e5e7eb;">
+          <div style="background:#111827; color:#ffffff; padding:24px 28px;">
+            <div style="font-size:12px; letter-spacing:1px; text-transform:uppercase; opacity:.8;">KPS Agency</div>
+            <h2 style="margin:8px 0 0 0; font-size:28px;">New Brief Received</h2>
+          </div>
 
-        <p><strong>Email client :</strong> ${escapeHtml(clientEmail)}</p>
+          <div style="padding:28px;">
+            <div style="margin-bottom:24px; padding:16px 18px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px;">
+              <p style="margin:0 0 8px 0;"><strong>Client email:</strong> ${escapeHtml(clientEmail)}</p>
+              <p style="margin:0;"><strong>Selected offer:</strong> ${escapeHtml(offre)}</p>
+            </div>
 
-        <hr style="margin: 20px 0;" />
+            <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Client information</h3>
+            <table style="width:100%; border-collapse:collapse;">
+              <tr><td style="padding:8px 0; font-weight:700; width:220px;">Full name</td><td style="padding:8px 0;">${escapeHtml(nom)}</td></tr>
+              <tr><td style="padding:8px 0; font-weight:700;">Email</td><td style="padding:8px 0;">${escapeHtml(email)}</td></tr>
+              <tr><td style="padding:8px 0; font-weight:700;">Phone</td><td style="padding:8px 0;">${escapeHtml(telephone)}</td></tr>
+              <tr><td style="padding:8px 0; font-weight:700;">Company / activity</td><td style="padding:8px 0;">${escapeHtml(entreprise)}</td></tr>
+            </table>
 
-        <h3>Informations client</h3>
-        <p><strong>Nom :</strong> ${escapeHtml(nom)}</p>
-        <p><strong>Email :</strong> ${escapeHtml(email)}</p>
-        <p><strong>Téléphone :</strong> ${escapeHtml(telephone)}</p>
-        <p><strong>Entreprise :</strong> ${escapeHtml(entreprise)}</p>
+            <hr style="margin:24px 0; border:none; border-top:1px solid #e5e7eb;" />
+            ${projectHtml}
 
-        <hr style="margin: 20px 0;" />
+            <hr style="margin:24px 0; border:none; border-top:1px solid #e5e7eb;" />
+            ${websiteDomainHtml}
 
-        ${projetHtml}
+            <hr style="margin:24px 0; border:none; border-top:1px solid #e5e7eb;" />
+            ${contentDesignHtml}
 
-        <hr style="margin: 20px 0;" />
+            ${
+              googleBusinessHtml
+                ? `<hr style="margin:24px 0; border:none; border-top:1px solid #e5e7eb;" />${googleBusinessHtml}`
+                : ''
+            }
 
-        ${siteDomaineHtml}
+            <hr style="margin:24px 0; border:none; border-top:1px solid #e5e7eb;" />
+            <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Uploaded files</h3>
+            ${
+              uploadedFilesHtml === '-'
+                ? `<p style="margin:0;">No uploaded files.</p>`
+                : `<ul style="margin:0; padding-left:18px;">${uploadedFilesHtml}</ul>`
+            }
 
-        <hr style="margin: 20px 0;" />
-
-        ${contenuDesignHtml}
-
-        <hr style="margin: 20px 0;" />
-
-        <h3>Fichiers uploadés</h3>
-        ${uploadedFilesHtml === '-'
-          ? `<p>-</p>`
-          : `<ul>${uploadedFilesHtml}</ul>`}
-
-        <hr style="margin: 20px 0;" />
-
-        <h3>Contraintes / timing</h3>
-        <p><strong>Deadline :</strong> ${escapeHtml(deadline)}</p>
-        <p><strong>Contraintes spécifiques :</strong><br>${escapeHtml(contraintes)}</p>
-
-        <hr style="margin: 20px 0;" />
-
-        <p><strong>Confirmation cadre commercial :</strong> ${escapeHtml(confirmation)}</p>
+            <hr style="margin:24px 0; border:none; border-top:1px solid #e5e7eb;" />
+            <h3 style="margin:0 0 12px 0; font-size:18px; color:#111827;">Final notes</h3>
+            <p style="margin:0 0 10px 0;"><strong>Specific constraints:</strong><br>${escapeHtml(contraintes)}</p>
+            <p style="margin:0;"><strong>Commercial terms confirmed:</strong> ${escapeHtml(confirmation)}</p>
+          </div>
+        </div>
       </div>
     `;
 
@@ -276,7 +479,7 @@ export default async function handler(req, res) {
     const kpsEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
       to: 'kps.agency.ia@gmail.com',
-      subject: `Nouveau Brief Reçu - ${offre}`,
+      subject: `New Brief Received - ${offre}`,
       html: kpsEmailHtml,
       attachments,
     });
