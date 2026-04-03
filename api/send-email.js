@@ -356,168 +356,156 @@ export default async function handler(req, res) {
     );
 
 // Google Business
-    const hasGoogleBusinessRaw = pickFirst(formData, [
-      'hasGoogleBusiness',
-      'besoinGoogleBusiness',
-      'googleBusinessNeeded',
-      'googleBusinessSupport',
-      'googleBusinessSupportNeeded',
-      'googleBusinessHelp',
-      'googleBusinessAccompagnement',
-      'accompagnementGoogleBusiness',
-      'gestionGoogleBusiness',
-      'gestionOuCreationGoogleBusiness',
-      'besoinAccompagnementGoogleBusiness'
-    ]);
+const hasGoogleBusiness = boolToOuiNon(
+  pickFirst(formData, [
+    'hasGoogleBusiness',
+    'besoinGoogleBusiness',
+    'googleBusinessNeeded',
+    'googleBusinessSupport',
+    'googleBusiness',
+  ])
+);
 
-    const hasGoogleBusiness = boolToOuiNon(hasGoogleBusinessRaw);
-    const hasGoogleBusinessEn = boolToYesNo(hasGoogleBusinessRaw);
+const hasGoogleBusinessEn = boolToYesNo(
+  pickFirst(formData, [
+    'hasGoogleBusiness',
+    'besoinGoogleBusiness',
+    'googleBusinessNeeded',
+    'googleBusinessSupport',
+    'googleBusiness',
+  ])
+);
 
-    const hasExistingGoogleBusinessRaw = pickFirst(formData, [
-      'hasExistingGoogleBusiness',
-      'ficheGoogleBusinessExistante',
-      'existingGoogleBusiness',
-      'googleBusinessExisting',
-      'existingBusinessProfile',
-      'aDejaUneFicheGoogleBusiness',
-      'alreadyHasGoogleBusiness',
-      'hasGoogleBusinessProfile'
-    ]);
+const hasExistingGoogleBusiness = boolToOuiNon(
+  pickFirst(formData, [
+    'hasExistingGoogleBusiness',
+    'ficheGoogleBusinessExistante',
+    'existingGoogleBusiness',
+    'googleBusinessExisting',
+    'avezVousDejaUneFicheGoogleBusiness',
+  ])
+);
 
-    const hasExistingGoogleBusiness = boolToOuiNon(hasExistingGoogleBusinessRaw);
-    const hasExistingGoogleBusinessEn = boolToYesNo(hasExistingGoogleBusinessRaw);
+const hasExistingGoogleBusinessEn = boolToYesNo(
+  pickFirst(formData, [
+    'hasExistingGoogleBusiness',
+    'ficheGoogleBusinessExistante',
+    'existingGoogleBusiness',
+    'googleBusinessExisting',
+    'avezVousDejaUneFicheGoogleBusiness',
+  ])
+);
 
-    const createGoogleBusinessRaw = pickFirst(formData, [
-      'createGoogleBusiness',
-      'creationGoogleBusiness',
-      'createGoogleBusinessProfile',
-      'googleBusinessCreation',
-      'souhaitezVousQueNousCreionsVotreFiche',
-      'souhaitezVousUneCreationDeFicheGoogleBusiness',
-      'createBusinessProfile',
-      'needGoogleBusinessCreation'
-    ]);
+const createGoogleBusiness = boolToOuiNon(
+  pickFirst(formData, [
+    'createGoogleBusiness',
+    'creationGoogleBusiness',
+    'createGoogleBusinessProfile',
+    'souhaitezVousQueNousCreionsVotreFiche',
+    'creerVotreFicheGoogleBusiness',
+  ])
+);
 
-    const createGoogleBusiness = boolToOuiNon(createGoogleBusinessRaw);
-    const createGoogleBusinessEn = boolToYesNo(createGoogleBusinessRaw);
+const createGoogleBusinessEn = boolToYesNo(
+  pickFirst(formData, [
+    'createGoogleBusiness',
+    'creationGoogleBusiness',
+    'createGoogleBusinessProfile',
+    'souhaitezVousQueNousCreionsVotreFiche',
+    'creerVotreFicheGoogleBusiness',
+  ])
+);
 
-    const googleBusinessUrl = safe(
-      pickFirst(formData, [
-        'googleBusinessUrl',
-        'lienFicheGoogleBusiness',
-        'existingGoogleBusinessUrl',
-        'googleBusinessLink',
-        'businessProfileUrl',
-        'lienDeLaFicheActuelle',
-        'lienVotreFicheActuelle',
-        'googleBusinessProfileUrl'
-      ])
-    );
+const googleBusinessUrl = safe(
+  pickFirst(formData, [
+    'googleBusinessUrl',
+    'lienFicheGoogleBusiness',
+    'existingGoogleBusinessUrl',
+    'lienDeVotreFicheActuelle',
+    'currentGoogleBusinessLink',
+  ])
+);
 
-    const googleBusinessGoal = safe(
-      pickFirst(formData, [
-        'googleBusinessGoal',
-        'souhaitezVousRelierVotreFuturSite',
-        'googleBusinessConnectionGoal',
-        'whatDoYouWantUsToDo',
-        'whatDoYouWantToImprove',
-        'relierFuturSitePresenceLocale',
-        'relierVotreFuturSiteAPresenceLocale',
-        'googleBusinessLocalGoal',
-        'googleBusinessSeoGoal'
-      ])
-    );
+const googleBusinessGoal = safe(
+  pickFirst(formData, [
+    'googleBusinessGoal',
+    'souhaitezVousRelierVotreFuturSiteAVotrePresenceLocale',
+    'googleBusinessConnectionGoal',
+    'whatDoYouWantUsToDo',
+    'whatDoYouWantToImprove',
+    'futureSiteLocalConnection',
+  ])
+);
 
-    const googleBusinessImprove = safe(
-      pickFirst(formData, [
-        'googleBusinessImprove',
-        'queSouhaitezVousAmeliorer',
-        'whatDoYouWantToImprove',
-        'googleBusinessOptimization',
-        'optimisationGoogleBusiness',
-        'googleBusinessWorkNeeded',
-        'ameliorationsGoogleBusiness'
-      ])
-    );
+const googleBusinessImprove = safe(
+  pickFirst(formData, [
+    'googleBusinessImprove',
+    'queSouhaitezVousAmeliorer',
+    'whatDoYouWantToImprove',
+    'whatShouldWeImprove',
+    'whatShouldWeImproveOnIt',
+  ])
+);
 
-    const googleBusinessName = safe(
-      pickFirst(formData, [
-        'googleBusinessName',
-        'nomEtablissement',
-        'businessName',
-        'nomDeLEtablissement',
-        'nomDeLEtablissementAffiche',
-        'nomPublicEtablissement',
-        'establishmentName',
-        'displayBusinessName'
-      ])
-    );
+const googleBusinessName = safe(
+  pickFirst(formData, [
+    'googleBusinessName',
+    'nomEtablissement',
+    'nomEtablissementAffiche',
+    'businessName',
+    'nomDeLEtablissementAffiche',
+  ])
+);
 
-    const googleBusinessAddress = safe(
-      pickFirst(formData, [
-        'googleBusinessAddress',
-        'adresseZoneDesservie',
-        'businessAddress',
-        'adresse',
-        'zoneDesservie',
-        'adresseCompleteZoneCouverte',
-        'addressOrServiceArea',
-        'serviceArea',
-        'adresseComplete'
-      ])
-    );
+const googleBusinessAddress = safe(
+  pickFirst(formData, [
+    'googleBusinessAddress',
+    'adresseZoneDesservie',
+    'adresseZoneDAcitivite',
+    'adresseZoneDesserVie',
+    'businessAddress',
+    'adresseServiceArea',
+  ])
+);
 
-    const googleBusinessPhone = safe(
-      pickFirst(formData, [
-        'googleBusinessPhone',
-        'telephoneGoogleBusiness',
-        'businessPhone',
-        'telephone',
-        'telephoneAffiche',
-        'telephoneAfficheSurLaFiche',
-        'numeroVisibleClients',
-        'displayPhone',
-        'publicPhone'
-      ])
-    );
+const googleBusinessPhone = safe(
+  pickFirst(formData, [
+    'googleBusinessPhone',
+    'telephoneGoogleBusiness',
+    'telephoneAfficheSurLaFiche',
+    'businessPhone',
+    'phoneDisplayedOnProfile',
+  ])
+);
 
-    const googleBusinessWebsite = safe(
-      pickFirst(formData, [
-        'googleBusinessWebsite',
-        'siteWebARelier',
-        'businessWebsite',
-        'websiteToLink',
-        'siteWeb',
-        'siteWebRelie',
-        'siteWebRelier',
-        'linkedWebsite'
-      ])
-    );
+const googleBusinessWebsite = safe(
+  pickFirst(formData, [
+    'googleBusinessWebsite',
+    'siteWebARelier',
+    'siteWebRelier',
+    'businessWebsite',
+    'websiteToConnect',
+  ])
+);
 
-    const googleBusinessCategory = safe(
-      pickFirst(formData, [
-        'googleBusinessCategory',
-        'categorieActivite',
-        'businessCategory',
-        'categorie',
-        'categorieDActivite',
-        'activityCategory',
-        'businessType'
-      ])
-    );
+const googleBusinessCategory = safe(
+  pickFirst(formData, [
+    'googleBusinessCategory',
+    'categorieActivite',
+    'categorieDActivite',
+    'businessCategory',
+  ])
+);
 
-    const googleBusinessInfos = safe(
-      pickFirst(formData, [
-        'googleBusinessInfos',
-        'informationsImportantesGoogleBusiness',
-        'businessImportantInfos',
-        'informationsImportantes',
-        'infosImportantes',
-        'importantInfosToDisplay',
-        'businessInfos',
-        'informationsImportantesAAfficher'
-      ])
-    );
+const googleBusinessInfos = safe(
+  pickFirst(formData, [
+    'googleBusinessInfos',
+    'informationsImportantesGoogleBusiness',
+    'informationsImportantesAAfficher',
+    'businessImportantInfos',
+    'importantInformationToDisplay',
+  ])
+);
 
     // Traduction automatique des champs libres pour le mail prestataire
     const translated = await translateTextsToEnglish({
