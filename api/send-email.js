@@ -480,7 +480,7 @@ export default async function handler(req, res) {
     // Prestataire email
     const kpsEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
-      to: 'kps.agency.iq@gmail.com',
+      to: 'kps.agency.ia@gmail.com',
       subject: `New Brief Received - ${offerTypeLabel}`,
       html: kpsEmailHtml,
       attachments,
