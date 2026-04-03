@@ -4,44 +4,62 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 function safe(value) {
   if (value === undefined || value === null || value === '') return '-';
-  return value;
+  return String(value).trim();
 }
 
-function escapeHtml(str) {
-  if (str === undefined || str === null) return '-';
+function boolToOuiNon(value) {
+  if (
+    value === true ||
+    value === 1 ||
+    value === '1' ||
+    value === 'true' ||
+    value === 'oui' ||
+    value === 'Oui' ||
+    value === 'yes' ||
+    value === 'Yes'
+  ) {
+    return 'Oui';
+  }
 
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-    .replace(/\n/g, '<br>');
+  if (
+    value === false ||
+    value === 0 ||
+    value === '0' ||
+    value === 'false' ||
+    value === 'non' ||
+    value === 'Non' ||
+    value === 'no' ||
+    value === 'No'
+  ) {
+    return 'Non';
+  }
+
+  return '-';
 }
 
 function boolToYesNo(value) {
   if (
     value === true ||
+    value === 1 ||
+    value === '1' ||
+    value === 'true' ||
     value === 'oui' ||
     value === 'Oui' ||
     value === 'yes' ||
-    value === 'Yes' ||
-    value === 'true' ||
-    value === 1 ||
-    value === '1'
+    value === 'Yes'
   ) {
     return 'Yes';
   }
 
   if (
     value === false ||
+    value === 0 ||
+    value === '0' ||
+    value === 'false' ||
     value === 'non' ||
     value === 'Non' ||
     value === 'no' ||
-    value === 'No' ||
-    value === 'false' ||
-    value === 0 ||
-    value === '0'
+    value === 'No'
   ) {
     return 'No';
   }
@@ -49,34 +67,16 @@ function boolToYesNo(value) {
   return '-';
 }
 
-function boolToOuiNon(value) {
-  if (
-    value === true ||
-    value === 'oui' ||
-    value === 'Oui' ||
-    value === 'yes' ||
-    value === 'Yes' ||
-    value === 'true' ||
-    value === 1 ||
-    value === '1'
-  ) {
-    return 'Oui';
-  }
+function escapeHtml(value) {
+  if (value === undefined || value === null || value === '') return '-';
 
-  if (
-    value === false ||
-    value === 'non' ||
-    value === 'Non' ||
-    value === 'no' ||
-    value === 'No' ||
-    value === 'false' ||
-    value === 0 ||
-    value === '0'
-  ) {
-    return 'Non';
-  }
-
-  return '-';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .replace(/\n/g, '<br>');
 }
 
 function pickFirst(obj, keys) {
@@ -89,425 +89,124 @@ function pickFirst(obj, keys) {
   return '';
 }
 
-function hasRealValue(value) {
-  return (
-    value !== undefined &&
-    value !== null &&
-    String(value).trim() !== '' &&
-    String(value).trim() !== '-'
-  );
+function isMeaningful(value) {
+  if (value === undefined || value === null) return false;
+  const str = String(value).trim();
+  return str !== '' && str !== '-';
 }
 
-function normalizeAttachments(formData) {
-  const attachments = [];
-
-  const logoAttachment =
-    formData?.logoAttachment ||
-    formData?.logoFile ||
-    formData?.logo ||
-    null;
-
-  const imageAttachments = Array.isArray(formData?.imageAttachments)
-    ? formData.imageAttachments
-    : Array.isArray(formData?.images)
-      ? formData.images
-      : [];
-
-  if (logoAttachment && logoAttachment.content) {
-    attachments.push({
-      filename: logoAttachment.name || 'logo',
-      content: logoAttachment.content,
-    });
-  }
-
-  for (const image of imageAttachments) {
-    if (image && image.content) {
-      attachments.push({
-        filename: image.name || 'image',
-        content: image.content,
-      });
-    }
-  }
-
-  return attachments;
-}
-
-function buildUploadedFilesHtml(formData) {
+/**
+ * IMPORTANT
+ * On ne joint PAS de gros fichiers dans les emails ici.
+ * On liste seulement les fichiers / URLs déjà uploadés côté front (ex: Cloudinary).
+ * Cela évite une partie des soucis, mais le front doit lui aussi arrêter
+ * d’envoyer des blobs lourds à cette route si tu veux éviter le 413.
+ */
+function extractUploadedFiles(formData) {
   const files = [];
 
-  const logoAttachment =
+  const pushFile = (file, label = 'Fichier') => {
+    if (!file) return;
+
+    const name =
+      file.name ||
+      file.filename ||
+      file.original_filename ||
+      file.public_id ||
+      'fichier';
+
+    const url =
+      file.url ||
+      file.secure_url ||
+      file.link ||
+      file.href ||
+      '';
+
+    const type =
+      file.resource_type ||
+      file.type ||
+      file.mimeType ||
+      '';
+
+    files.push({
+      label,
+      name: String(name),
+      url: String(url || ''),
+      type: String(type || ''),
+    });
+  };
+
+  // logo
+  pushFile(
     formData?.logoAttachment ||
-    formData?.logoFile ||
-    formData?.logo ||
-    null;
+      formData?.logoFile ||
+      formData?.logo ||
+      formData?.logoCloudinary ||
+      null,
+    'Logo'
+  );
 
-  const imageAttachments = Array.isArray(formData?.imageAttachments)
-    ? formData.imageAttachments
-    : Array.isArray(formData?.images)
-      ? formData.images
-      : [];
+  // images
+  const imageArrays = [
+    formData?.imageAttachments,
+    formData?.images,
+    formData?.visuals,
+    formData?.cloudinaryImages,
+    formData?.uploadedImages,
+  ];
 
-  if (logoAttachment?.name) {
-    files.push(`Logo: ${escapeHtml(logoAttachment.name)}`);
-  }
-
-  if (imageAttachments.length > 0) {
-    for (const image of imageAttachments) {
-      if (image?.name) {
-        files.push(`Image: ${escapeHtml(image.name)}`);
+  for (const arr of imageArrays) {
+    if (Array.isArray(arr)) {
+      for (const file of arr) {
+        pushFile(file, 'Image');
       }
     }
   }
 
-  if (files.length === 0) return '-';
+  // fichiers génériques si jamais ton front en envoie
+  const genericArrays = [
+    formData?.attachments,
+    formData?.files,
+    formData?.uploadedFiles,
+  ];
 
-  return files.map((file) => `<li>${file}</li>`).join('');
+  for (const arr of genericArrays) {
+    if (Array.isArray(arr)) {
+      for (const file of arr) {
+        pushFile(file, 'Fichier');
+      }
+    }
+  }
+
+  return files;
 }
 
-function getGoogleBusinessFields(formData, isLandingPage, isSiteComplet) {
-  const needed = isLandingPage
-    ? pickFirst(formData, [
-        'googleBusinessNeededLP',
-        'hasGoogleBusiness',
-        'besoinGoogleBusiness',
-        'googleBusinessNeeded',
-        'googleBusinessSupport',
-      ])
-    : isSiteComplet
-      ? pickFirst(formData, [
-          'googleBusinessNeededSite',
-          'hasGoogleBusiness',
-          'besoinGoogleBusiness',
-          'googleBusinessNeeded',
-          'googleBusinessSupport',
-        ])
-      : pickFirst(formData, [
-          'hasGoogleBusiness',
-          'besoinGoogleBusiness',
-          'googleBusinessNeeded',
-          'googleBusinessSupport',
-        ]);
+function buildUploadedFilesHtml(files) {
+  if (!Array.isArray(files) || files.length === 0) {
+    return '<p>-</p>';
+  }
 
-  const existing = isLandingPage
-    ? pickFirst(formData, [
-        'hasGoogleBusinessProfileLP',
-        'hasExistingGoogleBusiness',
-        'ficheGoogleBusinessExistante',
-        'existingGoogleBusiness',
-      ])
-    : isSiteComplet
-      ? pickFirst(formData, [
-          'hasGoogleBusinessProfileSite',
-          'hasExistingGoogleBusiness',
-          'ficheGoogleBusinessExistante',
-          'existingGoogleBusiness',
-        ])
-      : pickFirst(formData, [
-          'hasExistingGoogleBusiness',
-          'ficheGoogleBusinessExistante',
-          'existingGoogleBusiness',
-        ]);
-
-  const createProfile = isLandingPage
-    ? pickFirst(formData, [
-        'googleBusinessCreateLP',
-        'createGoogleBusiness',
-        'creationGoogleBusiness',
-        'createGoogleBusinessProfile',
-      ])
-    : isSiteComplet
-      ? pickFirst(formData, [
-          'googleBusinessCreateSite',
-          'createGoogleBusiness',
-          'creationGoogleBusiness',
-          'createGoogleBusinessProfile',
-        ])
-      : pickFirst(formData, [
-          'createGoogleBusiness',
-          'creationGoogleBusiness',
-          'createGoogleBusinessProfile',
-        ]);
-
-  const url = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessUrlLP',
-          'googleBusinessUrl',
-          'lienFicheGoogleBusiness',
-          'existingGoogleBusinessUrl',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessUrlSite',
-            'googleBusinessUrl',
-            'lienFicheGoogleBusiness',
-            'existingGoogleBusinessUrl',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessUrl',
-            'lienFicheGoogleBusiness',
-            'existingGoogleBusinessUrl',
-          ])
-        );
-
-  const improve = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessImproveLP',
-          'queSouhaitezVousAmeliorer',
-          'whatDoYouWantToImprove',
-          'googleBusinessImprove',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessImproveSite',
-            'queSouhaitezVousAmeliorer',
-            'whatDoYouWantToImprove',
-            'googleBusinessImprove',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessImprove',
-            'queSouhaitezVousAmeliorer',
-            'whatDoYouWantToImprove',
-          ])
-        );
-
-  const name = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessBusinessNameLP',
-          'googleBusinessName',
-          'nomEtablissement',
-          'businessName',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessBusinessNameSite',
-            'googleBusinessName',
-            'nomEtablissement',
-            'businessName',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessName',
-            'nomEtablissement',
-            'businessName',
-          ])
-        );
-
-  const address = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessAreaLP',
-          'googleBusinessAddress',
-          'adresseZoneDesservie',
-          'businessAddress',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessAreaSite',
-            'googleBusinessAddress',
-            'adresseZoneDesservie',
-            'businessAddress',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessAddress',
-            'adresseZoneDesservie',
-            'businessAddress',
-          ])
-        );
-
-  const phone = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessPhoneLP',
-          'googleBusinessPhone',
-          'telephoneGoogleBusiness',
-          'businessPhone',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessPhoneSite',
-            'googleBusinessPhone',
-            'telephoneGoogleBusiness',
-            'businessPhone',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessPhone',
-            'telephoneGoogleBusiness',
-            'businessPhone',
-          ])
-        );
-
-  const website = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessWebsiteLP',
-          'googleBusinessWebsite',
-          'siteWebARelier',
-          'businessWebsite',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessWebsiteSite',
-            'googleBusinessWebsite',
-            'siteWebARelier',
-            'businessWebsite',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessWebsite',
-            'siteWebARelier',
-            'businessWebsite',
-          ])
-        );
-
-  const category = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessCategoryLP',
-          'googleBusinessCategory',
-          'categorieActivite',
-          'businessCategory',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessCategorySite',
-            'googleBusinessCategory',
-            'categorieActivite',
-            'businessCategory',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessCategory',
-            'categorieActivite',
-            'businessCategory',
-          ])
-        );
-
-  const infos = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessInfoLP',
-          'googleBusinessInfos',
-          'informationsImportantesGoogleBusiness',
-          'businessImportantInfos',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessInfoSite',
-            'googleBusinessInfos',
-            'informationsImportantesGoogleBusiness',
-            'businessImportantInfos',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessInfos',
-            'informationsImportantesGoogleBusiness',
-            'businessImportantInfos',
-          ])
-        );
-
-  const goal = isLandingPage
-    ? safe(
-        pickFirst(formData, [
-          'googleBusinessLocalLinkLP',
-          'googleBusinessGoal',
-          'souhaitezVousRelierVotreFuturSite',
-          'googleBusinessConnectionGoal',
-        ])
-      )
-    : isSiteComplet
-      ? safe(
-          pickFirst(formData, [
-            'googleBusinessLocalLinkSite',
-            'googleBusinessGoal',
-            'souhaitezVousRelierVotreFuturSite',
-            'googleBusinessConnectionGoal',
-          ])
-        )
-      : safe(
-          pickFirst(formData, [
-            'googleBusinessGoal',
-            'souhaitezVousRelierVotreFuturSite',
-            'googleBusinessConnectionGoal',
-          ])
-        );
-
-  const neededEn = boolToYesNo(needed);
-  const existingEn = boolToYesNo(existing);
-  const createEn = boolToYesNo(createProfile);
-
-  const hasDetails =
-    neededEn === 'Yes' ||
-    existingEn === 'Yes' ||
-    createEn === 'Yes' ||
-    hasRealValue(url) ||
-    hasRealValue(name) ||
-    hasRealValue(address) ||
-    hasRealValue(phone) ||
-    hasRealValue(website) ||
-    hasRealValue(category) ||
-    hasRealValue(infos) ||
-    hasRealValue(improve) ||
-    hasRealValue(goal);
-
-  return {
-    neededEn,
-    existingEn,
-    createEn,
-    url,
-    improve,
-    name,
-    address,
-    phone,
-    website,
-    category,
-    infos,
-    goal,
-    hasDetails,
-  };
+  return `
+    <ul>
+      ${files
+        .map((file) => {
+          const name = escapeHtml(file.name);
+          const label = escapeHtml(file.label || 'Fichier');
+          const type = isMeaningful(file.type) ? ` (${escapeHtml(file.type)})` : '';
+          const url = isMeaningful(file.url)
+            ? `<br><a href="${escapeHtml(file.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(file.url)}</a>`
+            : '';
+          return `<li><strong>${label} :</strong> ${name}${type}${url}</li>`;
+        })
+        .join('')}
+    </ul>
+  `;
 }
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin || '*';
-
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-Requested-With'
-  );
-  res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -526,19 +225,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const offre = safe(
-      pickFirst(formData, ['offre', 'offer', 'selectedOffer'])
-    );
-
-    const isLandingPage = String(offre).toLowerCase().includes('landing');
-    const isSiteComplet =
-      String(offre).toLowerCase().includes('site internet complet') ||
-      String(offre).toLowerCase().includes('site web complet') ||
-      String(offre).toLowerCase().includes('complete website');
-
-    const attachments = normalizeAttachments(formData);
-    const uploadedFilesHtml = buildUploadedFilesHtml(formData);
-
+    // ========= INFOS CLIENT =========
     const nom = safe(pickFirst(formData, ['nom', 'name', 'fullName']));
     const email = safe(pickFirst(formData, ['email']));
     const telephone = safe(pickFirst(formData, ['telephone', 'phone']));
@@ -551,13 +238,10 @@ export default async function handler(req, res) {
       ])
     );
 
-    const contraintes = safe(
-      pickFirst(formData, [
-        'contraintes',
-        'contraintesSpecifiques',
-        'specificConstraints',
-      ])
+    const offre = safe(
+      pickFirst(formData, ['offre', 'offer', 'selectedOffer'])
     );
+
     const confirmation = boolToOuiNon(
       pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
     );
@@ -565,9 +249,29 @@ export default async function handler(req, res) {
       pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
     );
 
-    const objectifLP = safe(
-      pickFirst(formData, ['objectifLP', 'objectifPrincipal', 'mainGoalLP'])
+    const contraintes = safe(
+      pickFirst(formData, [
+        'contraintes',
+        'contraintesSpecifiques',
+        'specificConstraints',
+      ])
     );
+
+    const isLandingPage = String(offre).toLowerCase().includes('landing');
+    const isSiteComplet =
+      String(offre).toLowerCase().includes('site internet complet') ||
+      String(offre).toLowerCase().includes('site web complet') ||
+      String(offre).toLowerCase().includes('complete website');
+
+    // ========= LANDING PAGE =========
+    const objectifLP = safe(
+      pickFirst(formData, [
+        'objectifLP',
+        'objectifPrincipal',
+        'mainGoalLP',
+      ])
+    );
+
     const offreService = safe(
       pickFirst(formData, [
         'offreService',
@@ -575,12 +279,23 @@ export default async function handler(req, res) {
         'highlightedOffer',
       ])
     );
+
     const cibleLP = safe(
-      pickFirst(formData, ['cibleLP', 'publicCible', 'targetAudienceLP'])
+      pickFirst(formData, [
+        'cibleLP',
+        'publicCible',
+        'targetAudienceLP',
+      ])
     );
+
     const descLP = safe(
-      pickFirst(formData, ['descLP', 'descriptionProjet', 'projectDescriptionLP'])
+      pickFirst(formData, [
+        'descLP',
+        'descriptionProjet',
+        'projectDescriptionLP',
+      ])
     );
+
     const actionAttendue = safe(
       pickFirst(formData, [
         'actionAttendue',
@@ -589,6 +304,7 @@ export default async function handler(req, res) {
       ])
     );
 
+    // ========= SITE COMPLET =========
     const objectifSite = safe(
       pickFirst(formData, [
         'objectifSite',
@@ -596,9 +312,15 @@ export default async function handler(req, res) {
         'mainGoalSite',
       ])
     );
+
     const cibleSite = safe(
-      pickFirst(formData, ['cibleSite', 'publicCibleSite', 'targetAudienceSite'])
+      pickFirst(formData, [
+        'cibleSite',
+        'publicCibleSite',
+        'targetAudienceSite',
+      ])
     );
+
     const descSite = safe(
       pickFirst(formData, [
         'descSite',
@@ -606,6 +328,7 @@ export default async function handler(req, res) {
         'projectDescriptionSite',
       ])
     );
+
     const pagesSite = safe(
       pickFirst(formData, [
         'pagesSite',
@@ -615,224 +338,466 @@ export default async function handler(req, res) {
     );
 
     const hasWebsite = boolToOuiNon(
-      pickFirst(formData, ['hasWebsite', 'siteExistant', 'existingWebsite'])
+      pickFirst(formData, [
+        'hasWebsite',
+        'siteExistant',
+        'existingWebsite',
+      ])
     );
     const hasWebsiteEn = boolToYesNo(
-      pickFirst(formData, ['hasWebsite', 'siteExistant', 'existingWebsite'])
+      pickFirst(formData, [
+        'hasWebsite',
+        'siteExistant',
+        'existingWebsite',
+      ])
     );
+
     const websiteUrl = safe(
-      pickFirst(formData, ['websiteUrl', 'urlExistante', 'existingUrl'])
+      pickFirst(formData, [
+        'websiteUrl',
+        'urlExistante',
+        'existingUrl',
+      ])
     );
 
     const hasDomain = boolToOuiNon(
-      pickFirst(formData, ['hasDomain', 'domaineReserve', 'domainAlreadyBooked'])
+      pickFirst(formData, [
+        'hasDomain',
+        'domaineReserve',
+        'domainAlreadyBooked',
+      ])
     );
     const hasDomainEn = boolToYesNo(
-      pickFirst(formData, ['hasDomain', 'domaineReserve', 'domainAlreadyBooked'])
+      pickFirst(formData, [
+        'hasDomain',
+        'domaineReserve',
+        'domainAlreadyBooked',
+      ])
     );
+
     const domainName = safe(
-      pickFirst(formData, ['domainName', 'nomDeDomaine', 'domain'])
+      pickFirst(formData, [
+        'domainName',
+        'nomDeDomaine',
+        'domain',
+      ])
     );
 
-    const hasContent = boolToOuiNon(
-      pickFirst(formData, ['hasContent', 'contenusDejaPrets', 'contentReady'])
-    );
-    const hasContentEn = boolToYesNo(
-      pickFirst(formData, ['hasContent', 'contenusDejaPrets', 'contentReady'])
-    );
-    const missingElements = safe(
-      pickFirst(formData, ['missingElements', 'elementsManquants'])
-    );
-
+    // ========= RESSOURCES =========
     const hasTexts = boolToOuiNon(
-      pickFirst(formData, ['hasTexts', 'textesDejaPrets', 'textsReady'])
+      pickFirst(formData, [
+        'hasTexts',
+        'textesDejaPrets',
+        'textsReady',
+      ])
     );
     const hasTextsEn = boolToYesNo(
-      pickFirst(formData, ['hasTexts', 'textesDejaPrets', 'textsReady'])
+      pickFirst(formData, [
+        'hasTexts',
+        'textesDejaPrets',
+        'textsReady',
+      ])
     );
+
     const textesFournis = safe(
-      pickFirst(formData, ['textesFournis', 'providedTexts'])
+      pickFirst(formData, [
+        'textesFournis',
+        'providedTexts',
+      ])
     );
 
     const hasLogo = boolToOuiNon(
-      pickFirst(formData, ['hasLogo', 'logoDisponible', 'logoAvailable'])
+      pickFirst(formData, [
+        'hasLogo',
+        'logoDisponible',
+        'logoAvailable',
+      ])
     );
     const hasLogoEn = boolToYesNo(
-      pickFirst(formData, ['hasLogo', 'logoDisponible', 'logoAvailable'])
+      pickFirst(formData, [
+        'hasLogo',
+        'logoDisponible',
+        'logoAvailable',
+      ])
     );
 
     const hasImages = boolToOuiNon(
-      pickFirst(formData, ['hasImages', 'imagesDisponibles', 'imagesAvailable'])
+      pickFirst(formData, [
+        'hasImages',
+        'imagesDisponibles',
+        'imagesAvailable',
+      ])
     );
     const hasImagesEn = boolToYesNo(
-      pickFirst(formData, ['hasImages', 'imagesDisponibles', 'imagesAvailable'])
+      pickFirst(formData, [
+        'hasImages',
+        'imagesDisponibles',
+        'imagesAvailable',
+      ])
     );
 
     const nombreImages = safe(
-      pickFirst(formData, ['nombreImages', 'numberOfImages'])
+      pickFirst(formData, [
+        'nombreImages',
+        'numberOfImages',
+      ])
     );
+
     const liensUtiles = safe(
-      pickFirst(formData, ['liensUtiles', 'usefulLinks'])
+      pickFirst(formData, [
+        'liensUtiles',
+        'usefulLinks',
+      ])
     );
+
     const inspirations = safe(
-      pickFirst(formData, ['inspirations', 'designInspirations'])
+      pickFirst(formData, [
+        'inspirations',
+        'designInspirations',
+      ])
     );
+
     const couleurs = safe(
-      pickFirst(formData, ['couleurs', 'branding', 'colorsBranding'])
+      pickFirst(formData, [
+        'couleurs',
+        'branding',
+        'colorsBranding',
+      ])
     );
 
-    const googleBusiness = getGoogleBusinessFields(
-      formData,
-      isLandingPage,
-      isSiteComplet
+    // Site complet : contenus globaux
+    const hasContent = boolToOuiNon(
+      pickFirst(formData, [
+        'hasContent',
+        'contenusDejaPrets',
+        'contentReady',
+      ])
+    );
+    const hasContentEn = boolToYesNo(
+      pickFirst(formData, [
+        'hasContent',
+        'contenusDejaPrets',
+        'contentReady',
+      ])
     );
 
+    const missingElements = safe(
+      pickFirst(formData, [
+        'missingElements',
+        'elementsManquants',
+      ])
+    );
+
+    // ========= GOOGLE BUSINESS =========
+    const hasGoogleBusiness = boolToOuiNon(
+      pickFirst(formData, [
+        'hasGoogleBusiness',
+        'besoinGoogleBusiness',
+        'googleBusinessNeeded',
+        'googleBusinessSupport',
+        'googleBusinessNeededLP',
+        'googleBusinessNeededSite',
+      ])
+    );
+
+    const hasGoogleBusinessEn = boolToYesNo(
+      pickFirst(formData, [
+        'hasGoogleBusiness',
+        'besoinGoogleBusiness',
+        'googleBusinessNeeded',
+        'googleBusinessSupport',
+        'googleBusinessNeededLP',
+        'googleBusinessNeededSite',
+      ])
+    );
+
+    const hasExistingGoogleBusiness = boolToOuiNon(
+      pickFirst(formData, [
+        'hasExistingGoogleBusiness',
+        'ficheGoogleBusinessExistante',
+        'existingGoogleBusiness',
+        'hasGoogleBusinessProfileLP',
+        'hasGoogleBusinessProfileSite',
+      ])
+    );
+
+    const hasExistingGoogleBusinessEn = boolToYesNo(
+      pickFirst(formData, [
+        'hasExistingGoogleBusiness',
+        'ficheGoogleBusinessExistante',
+        'existingGoogleBusiness',
+        'hasGoogleBusinessProfileLP',
+        'hasGoogleBusinessProfileSite',
+      ])
+    );
+
+    const createGoogleBusiness = boolToOuiNon(
+      pickFirst(formData, [
+        'createGoogleBusiness',
+        'creationGoogleBusiness',
+        'createGoogleBusinessProfile',
+        'googleBusinessCreateLP',
+        'googleBusinessCreateSite',
+      ])
+    );
+
+    const createGoogleBusinessEn = boolToYesNo(
+      pickFirst(formData, [
+        'createGoogleBusiness',
+        'creationGoogleBusiness',
+        'createGoogleBusinessProfile',
+        'googleBusinessCreateLP',
+        'googleBusinessCreateSite',
+      ])
+    );
+
+    const googleBusinessUrl = safe(
+      pickFirst(formData, [
+        'googleBusinessUrl',
+        'lienFicheGoogleBusiness',
+        'existingGoogleBusinessUrl',
+        'googleBusinessUrlLP',
+        'googleBusinessUrlSite',
+      ])
+    );
+
+    const googleBusinessImprove = safe(
+      pickFirst(formData, [
+        'googleBusinessImprove',
+        'queSouhaitezVousAmeliorer',
+        'whatDoYouWantToImprove',
+        'googleBusinessImproveLP',
+        'googleBusinessImproveSite',
+      ])
+    );
+
+    const googleBusinessName = safe(
+      pickFirst(formData, [
+        'googleBusinessName',
+        'nomEtablissement',
+        'businessName',
+        'googleBusinessBusinessNameLP',
+        'googleBusinessBusinessNameSite',
+      ])
+    );
+
+    const googleBusinessAddress = safe(
+      pickFirst(formData, [
+        'googleBusinessAddress',
+        'adresseZoneDesservie',
+        'businessAddress',
+        'googleBusinessAreaLP',
+        'googleBusinessAreaSite',
+      ])
+    );
+
+    const googleBusinessPhone = safe(
+      pickFirst(formData, [
+        'googleBusinessPhone',
+        'telephoneGoogleBusiness',
+        'businessPhone',
+        'googleBusinessPhoneLP',
+        'googleBusinessPhoneSite',
+      ])
+    );
+
+    const googleBusinessWebsite = safe(
+      pickFirst(formData, [
+        'googleBusinessWebsite',
+        'siteWebARelier',
+        'businessWebsite',
+        'googleBusinessWebsiteLP',
+        'googleBusinessWebsiteSite',
+      ])
+    );
+
+    const googleBusinessCategory = safe(
+      pickFirst(formData, [
+        'googleBusinessCategory',
+        'categorieActivite',
+        'businessCategory',
+        'googleBusinessCategoryLP',
+        'googleBusinessCategorySite',
+      ])
+    );
+
+    const googleBusinessInfos = safe(
+      pickFirst(formData, [
+        'googleBusinessInfos',
+        'informationsImportantesGoogleBusiness',
+        'businessImportantInfos',
+        'googleBusinessInfoLP',
+        'googleBusinessInfoSite',
+      ])
+    );
+
+    const googleBusinessGoal = safe(
+      pickFirst(formData, [
+        'googleBusinessGoal',
+        'souhaitezVousRelierVotreFuturSite',
+        'googleBusinessConnectionGoal',
+        'googleBusinessLocalLinkLP',
+        'googleBusinessLocalLinkSite',
+      ])
+    );
+
+    const hasGoogleBusinessDetails =
+      hasGoogleBusinessEn === 'Yes' &&
+      [
+        hasExistingGoogleBusinessEn,
+        createGoogleBusinessEn,
+        googleBusinessUrl,
+        googleBusinessName,
+        googleBusinessAddress,
+        googleBusinessPhone,
+        googleBusinessWebsite,
+        googleBusinessCategory,
+        googleBusinessInfos,
+        googleBusinessImprove,
+        googleBusinessGoal,
+      ].some(isMeaningful);
+
+    // ========= FICHIERS =========
+    const uploadedFiles = extractUploadedFiles(formData);
+    const uploadedFilesHtml = buildUploadedFilesHtml(uploadedFiles);
+
+    // ========= BLOCS HTML =========
     const projectHtml = isLandingPage
       ? `
-        <h3>Project</h3>
-        <p><strong>Offer:</strong> ${escapeHtml(offre)}</p>
-        <p><strong>Offer type:</strong> Landing Page</p>
-        <p><strong>Main goal:</strong> ${escapeHtml(objectifLP)}</p>
-        <p><strong>Offer / service highlighted:</strong> ${escapeHtml(offreService)}</p>
-        <p><strong>Target audience:</strong> ${escapeHtml(cibleLP)}</p>
-        <p><strong>Project description:</strong><br>${escapeHtml(descLP)}</p>
-        <p><strong>Expected visitor action:</strong> ${escapeHtml(actionAttendue)}</p>
-        <p><strong>Desired pages / sections:</strong> -</p>
-        <p><strong>Number of pages:</strong> -</p>
+        <h3>Projet</h3>
+        <p><strong>Offre :</strong> ${escapeHtml(offre)}</p>
+        <p><strong>Type d’offre :</strong> Landing Page</p>
+        <p><strong>Objectif principal :</strong> ${escapeHtml(objectifLP)}</p>
+        <p><strong>Offre / service mis en avant :</strong> ${escapeHtml(offreService)}</p>
+        <p><strong>Public cible :</strong> ${escapeHtml(cibleLP)}</p>
+        <p><strong>Description du projet :</strong><br>${escapeHtml(descLP)}</p>
+        <p><strong>Action attendue du visiteur :</strong> ${escapeHtml(actionAttendue)}</p>
       `
       : `
-        <h3>Project</h3>
-        <p><strong>Offer:</strong> ${escapeHtml(offre)}</p>
-        <p><strong>Offer type:</strong> Complete Website</p>
-        <p><strong>Main goal:</strong> ${escapeHtml(objectifSite)}</p>
-        <p><strong>Offer / service highlighted:</strong> -</p>
-        <p><strong>Target audience:</strong> ${escapeHtml(cibleSite)}</p>
-        <p><strong>Project description:</strong><br>${escapeHtml(descSite)}</p>
-        <p><strong>Expected visitor action:</strong> -</p>
-        <p><strong>Desired pages / sections:</strong><br>${escapeHtml(pagesSite)}</p>
-        <p><strong>Number of pages:</strong> -</p>
+        <h3>Projet</h3>
+        <p><strong>Offre :</strong> ${escapeHtml(offre)}</p>
+        <p><strong>Type d’offre :</strong> Site Internet Complet</p>
+        <p><strong>Objectif principal du site :</strong> ${escapeHtml(objectifSite)}</p>
+        <p><strong>Public cible :</strong> ${escapeHtml(cibleSite)}</p>
+        <p><strong>Description du projet :</strong><br>${escapeHtml(descSite)}</p>
+        <p><strong>Pages ou sections souhaitées :</strong><br>${escapeHtml(pagesSite)}</p>
       `;
 
     const siteDomainHtml = isLandingPage
       ? `
-        <h3>Website / domain</h3>
-        <p><strong>Existing website:</strong> -</p>
-        <p><strong>Existing URL:</strong> -</p>
-        <p><strong>Domain already booked:</strong> ${escapeHtml(hasDomainEn)}</p>
-        <p><strong>Domain name:</strong> ${escapeHtml(domainName)}</p>
+        <h3>Structure / domaine</h3>
+        <p><strong>Site existant :</strong> -</p>
+        <p><strong>URL du site existant :</strong> -</p>
+        <p><strong>Nom de domaine / hébergement :</strong> -</p>
+        <p><strong>Nom de domaine :</strong> -</p>
       `
       : `
-        <h3>Website / domain</h3>
-        <p><strong>Existing website:</strong> ${escapeHtml(hasWebsiteEn)}</p>
-        <p><strong>Existing URL:</strong> ${escapeHtml(websiteUrl)}</p>
-        <p><strong>Domain already booked:</strong> ${escapeHtml(hasDomainEn)}</p>
-        <p><strong>Domain name:</strong> ${escapeHtml(domainName)}</p>
+        <h3>Structure / domaine</h3>
+        <p><strong>A déjà un site existant :</strong> ${escapeHtml(hasWebsiteEn)}</p>
+        <p><strong>URL du site existant :</strong> ${escapeHtml(websiteUrl)}</p>
+        <p><strong>A un nom de domaine / hébergement :</strong> ${escapeHtml(hasDomainEn)}</p>
+        <p><strong>Nom de domaine :</strong> ${escapeHtml(domainName)}</p>
       `;
 
     const contentDesignHtml = isLandingPage
       ? `
-        <h3>Content / design</h3>
-        <p><strong>Design inspirations:</strong><br>${escapeHtml(inspirations)}</p>
-        <p><strong>Colors / branding:</strong><br>${escapeHtml(couleurs)}</p>
-        <p><strong>Texts already prepared:</strong> ${escapeHtml(hasTextsEn)}</p>
-        <p><strong>Texts provided:</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo available:</strong> ${escapeHtml(hasLogoEn)}</p>
-        <p><strong>Images / visuals available:</strong> ${escapeHtml(hasImagesEn)}</p>
-        <p><strong>Number of images:</strong> ${escapeHtml(nombreImages)}</p>
-        <p><strong>Useful links:</strong><br>${escapeHtml(liensUtiles)}</p>
+        <h3>Ressources / direction créative</h3>
+        <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
+        <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
+        <p><strong>Logo disponible :</strong> ${escapeHtml(hasLogoEn)}</p>
+        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(hasImagesEn)}</p>
+        <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
+        <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
+        <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
+        <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs)}</p>
       `
       : `
-        <h3>Content / design</h3>
-        <p><strong>Design inspirations:</strong><br>${escapeHtml(inspirations)}</p>
-        <p><strong>Colors / branding:</strong><br>${escapeHtml(couleurs)}</p>
-        <p><strong>Content already prepared:</strong> ${escapeHtml(hasContentEn)}</p>
-        <p><strong>Missing elements:</strong><br>${escapeHtml(missingElements)}</p>
-        <p><strong>Texts already prepared:</strong> ${escapeHtml(hasTextsEn)}</p>
-        <p><strong>Texts provided:</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo available:</strong> ${escapeHtml(hasLogoEn)}</p>
-        <p><strong>Images / visuals available:</strong> ${escapeHtml(hasImagesEn)}</p>
-        <p><strong>Number of images:</strong> ${escapeHtml(nombreImages)}</p>
-        <p><strong>Useful links:</strong><br>${escapeHtml(liensUtiles)}</p>
+        <h3>Ressources / direction créative</h3>
+        <p><strong>Contenus déjà prêts :</strong> ${escapeHtml(hasContentEn)}</p>
+        <p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements)}</p>
+        <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
+        <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
+        <p><strong>Logo disponible :</strong> ${escapeHtml(hasLogoEn)}</p>
+        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(hasImagesEn)}</p>
+        <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
+        <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
+        <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
+        <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs)}</p>
       `;
 
-    const googleBusinessHtml = googleBusiness.hasDetails
+    const googleBusinessHtml = hasGoogleBusinessDetails
       ? `
         <h3>Google Business</h3>
-        <p><strong>Google Business support needed:</strong> ${escapeHtml(googleBusiness.neededEn)}</p>
-        <p><strong>Existing Google Business profile:</strong> ${escapeHtml(googleBusiness.existingEn)}</p>
-        <p><strong>Create a new Google Business profile:</strong> ${escapeHtml(googleBusiness.createEn)}</p>
-        <p><strong>Current profile link:</strong><br>${escapeHtml(googleBusiness.url)}</p>
-        <p><strong>Business name to use:</strong> ${escapeHtml(googleBusiness.name)}</p>
-        <p><strong>Address / service area:</strong> ${escapeHtml(googleBusiness.address)}</p>
-        <p><strong>Phone number to display:</strong> ${escapeHtml(googleBusiness.phone)}</p>
-        <p><strong>Website to connect:</strong> ${escapeHtml(googleBusiness.website)}</p>
-        <p><strong>Business category:</strong> ${escapeHtml(googleBusiness.category)}</p>
-        <p><strong>Important information to display:</strong><br>${escapeHtml(googleBusiness.infos)}</p>
-        <p><strong>What should we improve / do on it:</strong><br>${escapeHtml(googleBusiness.improve)}</p>
-        <p><strong>Local connection goal with the future site:</strong><br>${escapeHtml(googleBusiness.goal)}</p>
+        <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
+        <p><strong>Fiche Google Business existante :</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
+        <p><strong>Créer une nouvelle fiche Google Business :</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
+        <p><strong>Lien de la fiche actuelle :</strong><br>${escapeHtml(googleBusinessUrl)}</p>
+        <p><strong>Nom de l’établissement affiché :</strong> ${escapeHtml(googleBusinessName)}</p>
+        <p><strong>Adresse / zone desservie :</strong> ${escapeHtml(googleBusinessAddress)}</p>
+        <p><strong>Téléphone affiché :</strong> ${escapeHtml(googleBusinessPhone)}</p>
+        <p><strong>Site web à relier :</strong> ${escapeHtml(googleBusinessWebsite)}</p>
+        <p><strong>Catégorie d’activité :</strong> ${escapeHtml(googleBusinessCategory)}</p>
+        <p><strong>Informations importantes à afficher :</strong><br>${escapeHtml(googleBusinessInfos)}</p>
+        <p><strong>Améliorations souhaitées :</strong><br>${escapeHtml(googleBusinessImprove)}</p>
+        <p><strong>Relier le futur site à la présence locale :</strong><br>${escapeHtml(googleBusinessGoal)}</p>
       `
       : `
         <h3>Google Business</h3>
-        <p><strong>Google Business support needed:</strong> ${escapeHtml(googleBusiness.neededEn)}</p>
+        <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
       `;
 
     const kpsEmailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
-        <h2 style="margin-bottom: 16px;">📩 New Brief Received - KPS Agency</h2>
+        <h2 style="margin-bottom:16px;">📩 Nouveau Brief Reçu - KPS Agency</h2>
 
-        <p><strong>Client email:</strong> ${escapeHtml(clientEmail)}</p>
+        <p><strong>Email client :</strong> ${escapeHtml(clientEmail)}</p>
 
-        <hr style="margin: 20px 0;" />
+        <hr style="margin:20px 0;" />
 
-        <h3>Client information</h3>
-        <p><strong>Full name:</strong> ${escapeHtml(nom)}</p>
-        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(telephone)}</p>
-        <p><strong>Company / activity:</strong> ${escapeHtml(entreprise)}</p>
+        <h3>Informations client</h3>
+        <p><strong>Nom / prénom :</strong> ${escapeHtml(nom)}</p>
+        <p><strong>Email :</strong> ${escapeHtml(email)}</p>
+        <p><strong>Téléphone :</strong> ${escapeHtml(telephone)}</p>
+        <p><strong>Entreprise / activité :</strong> ${escapeHtml(entreprise)}</p>
 
-        <hr style="margin: 20px 0;" />
+        <hr style="margin:20px 0;" />
 
         ${projectHtml}
 
-        <hr style="margin: 20px 0;" />
+        <hr style="margin:20px 0;" />
 
         ${siteDomainHtml}
 
-        <hr style="margin: 20px 0;" />
+        <hr style="margin:20px 0;" />
 
         ${contentDesignHtml}
 
-        <hr style="margin: 20px 0;" />
+        <hr style="margin:20px 0;" />
 
         ${googleBusinessHtml}
 
-        <hr style="margin: 20px 0;" />
+        <hr style="margin:20px 0;" />
 
-        <h3>Uploaded files</h3>
-        ${
-          uploadedFilesHtml === '-'
-            ? '<p>-</p>'
-            : `<ul>${uploadedFilesHtml}</ul>`
-        }
+        <h3>Fichiers envoyés</h3>
+        ${uploadedFilesHtml}
 
-        <hr style="margin: 20px 0;" />
+        <hr style="margin:20px 0;" />
 
-        <h3>Final notes</h3>
-        <p><strong>Specific constraints:</strong><br>${escapeHtml(contraintes)}</p>
-        <p><strong>Commercial terms confirmed:</strong> ${escapeHtml(confirmationEn)}</p>
+        <h3>Cadrage final</h3>
+        <p><strong>Contraintes spécifiques :</strong><br>${escapeHtml(contraintes)}</p>
+        <p><strong>Cadre commercial confirmé :</strong> ${escapeHtml(confirmationEn)}</p>
       </div>
     `;
 
     const kpsEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
-      to: 'kps.agency.ia@gmail.com',
-      subject: `New Brief Received - ${offre}`,
+      to: 'kps.agency.io@gmail.com',
+      subject: `Nouveau Brief Reçu - ${offre}`,
       html: kpsEmailHtml,
-      attachments,
     });
 
     if (kpsEmailResult.error) {
-      console.error('❌ Error sending KPS email:', kpsEmailResult.error);
+      console.error('Erreur envoi mail KPS:', kpsEmailResult.error);
       return res.status(500).json({
         error: 'Failed to send email to KPS',
         details: kpsEmailResult.error,
@@ -844,7 +809,7 @@ export default async function handler(req, res) {
         <h2>Merci pour votre brief</h2>
         <p>Bonjour ${escapeHtml(nom)},</p>
         <p>
-          Nous avons bien reçu votre demande pour l'offre
+          Nous avons bien reçu votre demande pour l’offre
           <strong>${escapeHtml(offre)}</strong>.
         </p>
         <p>
@@ -865,7 +830,7 @@ export default async function handler(req, res) {
     });
 
     if (clientEmailResult.error) {
-      console.error('❌ Error sending client email:', clientEmailResult.error);
+      console.error('Erreur envoi mail client:', clientEmailResult.error);
       return res.status(500).json({
         error: 'Failed to send confirmation email',
         details: clientEmailResult.error,
@@ -877,10 +842,11 @@ export default async function handler(req, res) {
       message: 'Emails sent successfully',
       kpsEmailId: kpsEmailResult.data?.id || null,
       clientEmailId: clientEmailResult.data?.id || null,
-      attachmentsCount: attachments.length,
+      filesCount: uploadedFiles.length,
+      note: 'Les gros fichiers doivent idéalement être uploadés sur Cloudinary puis envoyés ici sous forme d’URLs.',
     });
   } catch (error) {
-    console.error('❌ Server error:', error);
+    console.error('Server error:', error);
 
     return res.status(500).json({
       error: 'Server error',
