@@ -791,7 +791,7 @@ export default async function handler(req, res) {
 
     const kpsEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
-      to: 'kps.agency.io@gmail.com',
+      to: 'kps.agency.ia@gmail.com',
       subject: `Nouveau Brief Reçu - ${offre}`,
       html: kpsEmailHtml,
     });
