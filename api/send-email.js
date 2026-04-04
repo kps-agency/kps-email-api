@@ -112,6 +112,7 @@ function extractUploadedFiles(formData) {
       file.name ||
       file.filename ||
       file.original_filename ||
+      file.originalName ||
       file.public_id ||
       'fichier';
 
@@ -136,17 +137,48 @@ function extractUploadedFiles(formData) {
     });
   };
 
-  // logo
+  // ===== NOUVEAU FORMAT ENVOYÉ PAR LE FRONT =====
+
+  if (formData?.logoUrl || formData?.logoFileName || formData?.logoPublicId) {
+    files.push({
+      label: 'Logo',
+      name: String(
+        formData.logoFileName ||
+        formData.logoPublicId ||
+        'logo'
+      ),
+      url: String(formData.logoUrl || ''),
+      type: 'image',
+    });
+  }
+
+  if (Array.isArray(formData?.imageUrls) && formData.imageUrls.length > 0) {
+    formData.imageUrls.forEach((url, index) => {
+      const fileName =
+        Array.isArray(formData?.imageFileNames) && formData.imageFileNames[index]
+          ? formData.imageFileNames[index]
+          : `image-${index + 1}`;
+
+      files.push({
+        label: `Image ${index + 1}`,
+        name: String(fileName),
+        url: String(url || ''),
+        type: 'image',
+      });
+    });
+  }
+
+  // ===== ANCIEN FORMAT / FORMATS DE SECOURS =====
+
   pushFile(
     formData?.logoAttachment ||
-      formData?.logoFile ||
-      formData?.logo ||
-      formData?.logoCloudinary ||
-      null,
+    formData?.logoFile ||
+    formData?.logo ||
+    formData?.logoCloudinary ||
+    null,
     'Logo'
   );
 
-  // images
   const imageArrays = [
     formData?.imageAttachments,
     formData?.images,
@@ -163,7 +195,6 @@ function extractUploadedFiles(formData) {
     }
   }
 
-  // fichiers génériques si jamais ton front en envoie
   const genericArrays = [
     formData?.attachments,
     formData?.files,
