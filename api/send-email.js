@@ -730,13 +730,19 @@ export default async function handler(req, res) {
         <p><strong>Nom de domaine :</strong> ${escapeHtml(domainName)}</p>
       `;
 
+const hasUploadedLogo = uploadedFiles.some(file => file.label === 'Logo');
+const hasUploadedImages = uploadedFiles.some(file => file.label === 'Image');
+
+const realHasLogoEn = hasUploadedLogo ? 'Yes' : 'No';
+const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
+    
     const contentDesignHtml = isLandingPage
       ? `
         <h3>Ressources / direction créative</h3>
         <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
         <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(hasLogoEn)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(hasImagesEn)}</p>
+        <p><strong>Logo disponible :</strong> ${escapeHtml(realhasLogoEn)}</p>
+        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realhasImagesEn)}</p>
         <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
         <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
         <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
@@ -748,8 +754,8 @@ export default async function handler(req, res) {
         <p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements)}</p>
         <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
         <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(hasLogoEn)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(hasImagesEn)}</p>
+        <p><strong>Logo disponible :</strong> ${escapeHtml(realhasLogoEn)}</p>
+        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realhasImagesEn)}</p>
         <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
         <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
         <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
