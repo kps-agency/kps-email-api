@@ -741,8 +741,8 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
         <h3>Ressources / direction créative</h3>
         <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
         <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(realhasLogoEn)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realhasImagesEn)}</p>
+        <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn)}</p>
+        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn)}</p>
         <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
         <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
         <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
@@ -754,8 +754,8 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
         <p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements)}</p>
         <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
         <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(realhasLogoEn)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realhasImagesEn)}</p>
+        <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn)}</p>
+        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn)}</p>
         <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
         <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
         <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
