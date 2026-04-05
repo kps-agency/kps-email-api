@@ -756,12 +756,6 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
         : ''
     }
   `;
-
-const hasUploadedLogo = uploadedFiles.some(file => file.label === 'Logo');
-const hasUploadedImages = uploadedFiles.some(file => file.label === 'Image');
-
-const realHasLogoEn = hasUploadedLogo ? 'Yes' : 'No';
-const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
     
   const contentDesignHtml = isLandingPage
   ? `
