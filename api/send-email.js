@@ -692,20 +692,6 @@ export default async function handler(req, res) {
     const uploadedFiles = extractUploadedFiles(formData);
     const uploadedFilesHtml = buildUploadedFilesHtml(uploadedFiles);
    
-    const logoFiles = uploadedFiles.filter(file => file.label === 'Logo');
-const imageFiles = uploadedFiles.filter(file => file.label === 'Image');
-
-const hasUploadedLogo = logoFiles.length > 0;
-const hasUploadedImages = imageFiles.length > 0;
-
-const logoFileNames = logoFiles.map(file => file.name).join(', ');
-const imageFileNames = imageFiles.map(file => file.name).join(', ');
-
-const uploadedImagesCount = imageFiles.length;
-
-const realHasLogoEn = hasUploadedLogo ? 'Yes' : 'No';
-const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
-   
     // ========= BLOCS HTML =========
     const projectHtml = isLandingPage
   ? `
