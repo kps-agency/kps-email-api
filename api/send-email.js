@@ -714,21 +714,28 @@ export default async function handler(req, res) {
         <p><strong>Pages ou sections souhaitées :</strong><br>${escapeHtml(pagesSite)}</p>
       `;
 
-    const siteDomainHtml = isLandingPage
-      ? `
-        <h3>Structure / domaine</h3>
-        <p><strong>Site existant :</strong> -</p>
-        <p><strong>URL du site existant :</strong> -</p>
-        <p><strong>Nom de domaine / hébergement :</strong> -</p>
-        <p><strong>Nom de domaine :</strong> -</p>
-      `
-      : `
-        <h3>Structure / domaine</h3>
-        <p><strong>A déjà un site existant :</strong> ${escapeHtml(hasWebsiteEn)}</p>
-        <p><strong>URL du site existant :</strong> ${escapeHtml(websiteUrl)}</p>
-        <p><strong>A un nom de domaine / hébergement :</strong> ${escapeHtml(hasDomainEn)}</p>
-        <p><strong>Nom de domaine :</strong> ${escapeHtml(domainName)}</p>
-      `;
+   const siteDomainHtml = isLandingPage
+  ? `
+    <h3>Structure / domaine</h3>
+    <p style="margin:0;">
+      Aucun besoin spécifique concernant un site existant ou un nom de domaine n’a été précisé dans ce brief Landing Page.
+    </p>
+  `
+  : `
+    <h3>Structure / domaine</h3>
+    <p><strong>A déjà un site existant :</strong> ${escapeHtml(hasWebsiteEn || 'Non précisé')}</p>
+    ${
+      hasWebsiteEn === 'Yes'
+        ? `<p><strong>URL du site existant :</strong> ${escapeHtml(websiteUrl || 'Non précisé')}</p>`
+        : ''
+    }
+    <p><strong>A un nom de domaine / hébergement :</strong> ${escapeHtml(hasDomainEn || 'Non précisé')}</p>
+    ${
+      hasDomainEn === 'Yes'
+        ? `<p><strong>Nom de domaine :</strong> ${escapeHtml(domainName || 'Non précisé')}</p>`
+        : ''
+    }
+  `;
 
 const hasUploadedLogo = uploadedFiles.some(file => file.label === 'Logo');
 const hasUploadedImages = uploadedFiles.some(file => file.label === 'Image');
@@ -736,52 +743,112 @@ const hasUploadedImages = uploadedFiles.some(file => file.label === 'Image');
 const realHasLogoEn = hasUploadedLogo ? 'Yes' : 'No';
 const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
     
-    const contentDesignHtml = isLandingPage
-      ? `
-        <h3>Ressources / direction créative</h3>
-        <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
-        <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn)}</p>
-        <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
-        <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
-        <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
-        <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs)}</p>
-      `
-      : `
-        <h3>Ressources / direction créative</h3>
-        <p><strong>Contenus déjà prêts :</strong> ${escapeHtml(hasContentEn)}</p>
-        <p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements)}</p>
-        <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn)}</p>
-        <p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis)}</p>
-        <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn)}</p>
-        <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn)}</p>
-        <p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages)}</p>
-        <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles)}</p>
-        <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations)}</p>
-        <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs)}</p>
-      `;
+   const contentDesignHtml = isLandingPage
+  ? `
+    <h3>Ressources / direction créative</h3>
 
-    const googleBusinessHtml = hasGoogleBusinessDetails
-      ? `
-        <h3>Google Business</h3>
-        <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
-        <p><strong>Fiche Google Business existante :</strong> ${escapeHtml(hasExistingGoogleBusinessEn)}</p>
-        <p><strong>Créer une nouvelle fiche Google Business :</strong> ${escapeHtml(createGoogleBusinessEn)}</p>
-        <p><strong>Lien de la fiche actuelle :</strong><br>${escapeHtml(googleBusinessUrl)}</p>
-        <p><strong>Nom de l’établissement affiché :</strong> ${escapeHtml(googleBusinessName)}</p>
-        <p><strong>Adresse / zone desservie :</strong> ${escapeHtml(googleBusinessAddress)}</p>
-        <p><strong>Téléphone affiché :</strong> ${escapeHtml(googleBusinessPhone)}</p>
-        <p><strong>Site web à relier :</strong> ${escapeHtml(googleBusinessWebsite)}</p>
-        <p><strong>Catégorie d’activité :</strong> ${escapeHtml(googleBusinessCategory)}</p>
-        <p><strong>Informations importantes à afficher :</strong><br>${escapeHtml(googleBusinessInfos)}</p>
-        <p><strong>Améliorations souhaitées :</strong><br>${escapeHtml(googleBusinessImprove)}</p>
-        <p><strong>Relier le futur site à la présence locale :</strong><br>${escapeHtml(googleBusinessGoal)}</p>
-      `
-      : `
-        <h3>Google Business</h3>
-        <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
-      `;
+    <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn || 'Non précisé')}</p>
+    ${
+      hasTextsEn === 'Yes'
+        ? `<p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis || 'Aucun texte transmis')}</p>`
+        : `<p><strong>Textes fournis :</strong><br>Aucun texte transmis pour le moment</p>`
+    }
+
+    <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
+
+    <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn || 'Non précisé')}</p>
+    ${
+      realHasImagesEn === 'Yes'
+        ? `<p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>`
+        : `<p><strong>Nombre d’images :</strong> Aucun volume précisé</p>`
+    }
+
+    <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles || 'Aucun lien transmis')}</p>
+    <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations || 'Aucune inspiration précisée')}</p>
+    <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs || 'Aucune direction de marque précisée')}</p>
+  `
+  : `
+    <h3>Ressources / direction créative</h3>
+
+    <p><strong>Contenus déjà prêts :</strong> ${escapeHtml(hasContentEn || 'Non précisé')}</p>
+
+    ${
+      hasContentEn === 'No'
+        ? `<p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements || 'Non précisé')}</p>`
+        : `<p><strong>Éléments manquants :</strong><br>Aucun manque signalé</p>`
+    }
+
+    <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn || 'Non précisé')}</p>
+    ${
+      hasTextsEn === 'Yes'
+        ? `<p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis || 'Aucun texte transmis')}</p>`
+        : `<p><strong>Textes fournis :</strong><br>Aucun texte transmis pour le moment</p>`
+    }
+
+    <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
+
+    ${
+      realHasLogoEn === 'Yes'
+        ? `<p><strong>Fichier logo :</strong><br>Voir la section « Fichiers envoyés » ci-dessous</p>`
+        : ``
+    }
+
+    <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn || 'Non précisé')}</p>
+    ${
+      realHasImagesEn === 'Yes'
+        ? `<p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>`
+        : `<p><strong>Nombre d’images :</strong> Aucun volume précisé</p>`
+    }
+
+    <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles || 'Aucun lien transmis')}</p>
+    <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations || 'Aucune inspiration précisée')}</p>
+    <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs || 'Aucune direction de marque précisée')}</p>
+  `;
+
+   const googleBusinessHtml = hasGoogleBusinessDetails
+  ? `
+    <h3>Google Business</h3>
+
+    <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn || 'Non précisé')}</p>
+    <p><strong>Fiche Google Business existante :</strong> ${escapeHtml(hasExistingGoogleBusinessEn || 'Non précisé')}</p>
+
+    ${
+      hasExistingGoogleBusinessEn === 'Yes'
+        ? `<p><strong>Lien de la fiche actuelle :</strong><br>${escapeHtml(googleBusinessUrl || 'Non précisé')}</p>`
+        : ``
+    }
+
+    ${
+      hasExistingGoogleBusinessEn === 'No'
+        ? `<p><strong>Créer une nouvelle fiche Google Business :</strong> ${escapeHtml(createGoogleBusinessEn || 'Non précisé')}</p>`
+        : ``
+    }
+
+    ${
+      createGoogleBusinessEn === 'Yes' || hasExistingGoogleBusinessEn === 'Yes'
+        ? `
+          <p><strong>Nom de l’établissement affiché :</strong> ${escapeHtml(googleBusinessName || 'Non précisé')}</p>
+          <p><strong>Adresse / zone desservie :</strong> ${escapeHtml(googleBusinessAddress || 'Non précisé')}</p>
+          <p><strong>Téléphone affiché :</strong> ${escapeHtml(googleBusinessPhone || 'Non précisé')}</p>
+          <p><strong>Site web à relier :</strong> ${escapeHtml(googleBusinessWebsite || 'Non précisé')}</p>
+          <p><strong>Catégorie d’activité :</strong> ${escapeHtml(googleBusinessCategory || 'Non précisé')}</p>
+          <p><strong>Informations importantes à afficher :</strong><br>${escapeHtml(googleBusinessInfos || 'Aucune information précisée')}</p>
+        `
+        : ``
+    }
+
+    ${
+      hasExistingGoogleBusinessEn === 'Yes'
+        ? `<p><strong>Améliorations souhaitées :</strong><br>${escapeHtml(googleBusinessImprove || 'Aucune amélioration précisée')}</p>`
+        : ``
+    }
+
+    <p><strong>Relier le futur site à la présence locale :</strong><br>${escapeHtml(googleBusinessGoal || 'Non précisé')}</p>
+  `
+  : `
+    <h3>Google Business</h3>
+    <p>Aucune demande Google Business spécifique n’a été précisée dans ce brief.</p>
+  `;
 
   const kpsEmailHtml = `
   <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
