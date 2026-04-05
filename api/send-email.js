@@ -783,48 +783,116 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
         <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn)}</p>
       `;
 
-    const kpsEmailHtml = `
-      <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
-        <h2 style="margin-bottom:16px;">📩 Nouveau Brief Reçu - KPS Agency</h2>
+  const kpsEmailHtml = `
+  <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
+    <div style="max-width: 760px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
 
-        <p><strong>Email client :</strong> ${escapeHtml(clientEmail)}</p>
-
-        <hr style="margin:20px 0;" />
-
-        <h3>Informations client</h3>
-        <p><strong>Nom / prénom :</strong> ${escapeHtml(nom)}</p>
-        <p><strong>Email :</strong> ${escapeHtml(email)}</p>
-        <p><strong>Téléphone :</strong> ${escapeHtml(telephone)}</p>
-        <p><strong>Entreprise / activité :</strong> ${escapeHtml(entreprise)}</p>
-
-        <hr style="margin:20px 0;" />
-
-        ${projectHtml}
-
-        <hr style="margin:20px 0;" />
-
-        ${siteDomainHtml}
-
-        <hr style="margin:20px 0;" />
-
-        ${contentDesignHtml}
-
-        <hr style="margin:20px 0;" />
-
-        ${googleBusinessHtml}
-
-        <hr style="margin:20px 0;" />
-
-        <h3>Fichiers envoyés</h3>
-        ${uploadedFilesHtml}
-
-        <hr style="margin:20px 0;" />
-
-        <h3>Cadrage final</h3>
-        <p><strong>Contraintes spécifiques :</strong><br>${escapeHtml(contraintes)}</p>
-        <p><strong>Cadre commercial confirmé :</strong> ${escapeHtml(confirmationEn)}</p>
+      <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
+        <h1 style="margin: 0; font-size: 24px;">📩 Nouveau Brief Reçu - KPS Agency</h1>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #d1d5db;">
+          Offre concernée : <strong>${escapeHtml(offre)}</strong>
+        </p>
       </div>
-    `;
+
+      <div style="padding: 28px;">
+
+        <div style="margin-bottom: 28px; padding: 16px 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="margin: 0 0 12px 0; font-size: 18px;">Résumé rapide</h2>
+          <p style="margin: 6px 0;"><strong>Email client :</strong> ${escapeHtml(clientEmail)}</p>
+          <p style="margin: 6px 0;"><strong>Nom :</strong> ${escapeHtml(nom)}</p>
+          <p style="margin: 6px 0;"><strong>Téléphone :</strong> ${escapeHtml(telephone)}</p>
+          <p style="margin: 6px 0;"><strong>Entreprise / activité :</strong> ${escapeHtml(entreprise)}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            1. Informations client
+          </h2>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb; width: 220px;"><strong>Nom / prénom</strong></td>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(nom)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb;"><strong>Email</strong></td>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(email)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb;"><strong>Téléphone</strong></td>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(telephone)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb;"><strong>Entreprise / activité</strong></td>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(entreprise)}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            2. Projet
+          </h2>
+          <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+            ${projectHtml}
+          </div>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            3. Structure / domaine
+          </h2>
+          <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+            ${siteDomainHtml}
+          </div>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            4. Ressources / direction créative
+          </h2>
+          <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+            ${contentDesignHtml}
+          </div>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            5. Google Business
+          </h2>
+          <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+            ${googleBusinessHtml}
+          </div>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            6. Fichiers envoyés
+          </h2>
+          <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+            ${uploadedFilesHtml}
+          </div>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            7. Cadrage final
+          </h2>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb; width: 220px;"><strong>Contraintes spécifiques</strong></td>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(contraintes)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb;"><strong>Cadre commercial confirmé</strong></td>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(confirmationEn)}</td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+`;
 
     const kpsEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
