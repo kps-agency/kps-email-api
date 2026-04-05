@@ -235,13 +235,9 @@ function buildUploadedFilesHtml(files) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', 'https://kps-agency.com');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-Requested-With, Content-Type, Accept, Authorization'
-  );
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -695,7 +691,7 @@ export default async function handler(req, res) {
     // ========= FICHIERS =========
     const uploadedFiles = extractUploadedFiles(formData);
     const uploadedFilesHtml = buildUploadedFilesHtml(uploadedFiles);
-  
+   
     const logoFiles = uploadedFiles.filter(file => file.label === 'Logo');
 const imageFiles = uploadedFiles.filter(file => file.label === 'Image');
 
@@ -711,28 +707,26 @@ const realHasLogoEn = hasUploadedLogo ? 'Yes' : 'No';
 const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
    
     // ========= BLOCS HTML =========
-   const projectHtml = isLandingPage
+    const projectHtml = isLandingPage
   ? `
-      <h3>Projet</h3>
-      <p><strong>Offre :</strong> ${escapeHtml(offre)}</p>
-      <p><strong>Type d’offre :</strong> Landing Page</p>
-
-      <p><strong>Objectif principal :</strong> ${escapeHtml(objectifLP || 'Non précisé')}</p>
-      <p><strong>Offre / service mis en avant :</strong> ${escapeHtml(offreService || 'Non précisé')}</p>
-      <p><strong>Public cible :</strong> ${escapeHtml(cibleLP || 'Non précisé')}</p>
-      <p><strong>Description du projet :</strong><br>${escapeHtml(descLP || 'Non précisé')}</p>
-
-      <p><strong>Action attendue du visiteur :</strong> ${escapeHtml(actionAttendue || 'Non précisé')}</p>
-    `
+    <h3>Projet</h3>
+    <p><strong>Offre :</strong> ${escapeHtml(offre || 'Non précisée')}</p>
+    <p><strong>Type d’offre :</strong> Landing Page</p>
+    <p><strong>Objectif principal de la page :</strong><br>${escapeHtml(objectifLP || 'Non précisé')}</p>
+    <p><strong>Offre / service mis en avant :</strong><br>${escapeHtml(offreService || 'Non précisé')}</p>
+    <p><strong>Public cible :</strong><br>${escapeHtml(cibleLP || 'Non précisé')}</p>
+    <p><strong>Description du projet :</strong><br>${escapeHtml(descLP || 'Non précisée')}</p>
+    <p><strong>Action attendue du visiteur :</strong> ${escapeHtml(actionAttendue || 'Non précisée')}</p>
+  `
   : `
-      <h3>Projet</h3>
-      <p><strong>Offre :</strong> ${escapeHtml(offre)}</p>
-      <p><strong>Type d’offre :</strong> Site Internet Complet</p>
-      <p><strong>Objectif principal du site :</strong> ${escapeHtml(objectifSite || 'Non précisé')}</p>
-      <p><strong>Public cible :</strong> ${escapeHtml(cibleSite || 'Non précisé')}</p>
-      <p><strong>Description du projet :</strong><br>${escapeHtml(descSite || 'Non précisé')}</p>
-      <p><strong>Pages ou sections souhaitées :</strong><br>${escapeHtml(pagesSite || 'Non précisé')}</p>
-    `;
+    <h3>Projet</h3>
+    <p><strong>Offre :</strong> ${escapeHtml(offre || 'Non précisée')}</p>
+    <p><strong>Type d’offre :</strong> Site Internet Complet</p>
+    <p><strong>Objectif principal du site :</strong><br>${escapeHtml(objectifSite || 'Non précisé')}</p>
+    <p><strong>Public cible :</strong><br>${escapeHtml(cibleSite || 'Non précisé')}</p>
+    <p><strong>Description du projet :</strong><br>${escapeHtml(descSite || 'Non précisée')}</p>
+    <p><strong>Pages ou sections souhaitées :</strong><br>${escapeHtml(pagesSite || 'Non précisées')}</p>
+  `;
 
   const siteDomainHtml = isLandingPage
   ? `
@@ -756,38 +750,31 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
         : ''
     }
   `;
+
+const hasUploadedLogo = uploadedFiles.some(file => file.label === 'Logo');
+const hasUploadedImages = uploadedFiles.some(file => file.label === 'Image');
+
+const realHasLogoEn = hasUploadedLogo ? 'Yes' : 'No';
+const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
     
-  const contentDesignHtml = isLandingPage
+   const contentDesignHtml = isLandingPage
   ? `
     <h3>Ressources / direction créative</h3>
 
-    <p><strong>Avez-vous déjà vos textes ?</strong> ${escapeHtml(hasTextsEn || 'Non précisé')}</p>
+    <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn || 'Non précisé')}</p>
     ${
       hasTextsEn === 'Yes'
         ? `<p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis || 'Aucun texte transmis')}</p>`
         : `<p><strong>Textes fournis :</strong><br>Aucun texte transmis pour le moment</p>`
     }
 
-    <p><strong>Avez-vous votre logo ?</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
-    ${
-      realHasLogoEn === 'Yes'
-        ? `<p><strong>Nom du fichier logo reçu :</strong><br>${escapeHtml(logoFileNames || 'Voir section fichiers envoyés')}</p>`
-        : `<p><strong>Nom du fichier logo reçu :</strong><br>Aucun logo reçu</p>`
-    }
+    <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
 
-    <p><strong>Avez-vous des images / visuels ?</strong> ${escapeHtml(realHasImagesEn || 'Non précisé')}</p>
+    <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn || 'Non précisé')}</p>
     ${
       realHasImagesEn === 'Yes'
-        ? `
-          <p><strong>Volume annoncé :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>
-          <p><strong>Nombre réel de fichiers image reçus :</strong> ${escapeHtml(String(uploadedImagesCount))}</p>
-          <p><strong>Noms des fichiers image reçus :</strong><br>${escapeHtml(imageFileNames || 'Voir section fichiers envoyés')}</p>
-        `
-        : `
-          <p><strong>Volume annoncé :</strong> ${escapeHtml(nombreImages || 'Aucun volume précisé')}</p>
-          <p><strong>Nombre réel de fichiers image reçus :</strong> 0</p>
-          <p><strong>Noms des fichiers image reçus :</strong><br>Aucune image reçue</p>
-        `
+        ? `<p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>`
+        : `<p><strong>Nombre d’images :</strong> Aucun volume précisé</p>`
     }
 
     <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles || 'Aucun lien transmis')}</p>
@@ -798,46 +785,41 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
     <h3>Ressources / direction créative</h3>
 
     <p><strong>Contenus déjà prêts :</strong> ${escapeHtml(hasContentEn || 'Non précisé')}</p>
+
     ${
       hasContentEn === 'No'
         ? `<p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements || 'Non précisé')}</p>`
         : `<p><strong>Éléments manquants :</strong><br>Aucun manque signalé</p>`
     }
 
-    <p><strong>Avez-vous déjà vos textes ?</strong> ${escapeHtml(hasTextsEn || 'Non précisé')}</p>
+    <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn || 'Non précisé')}</p>
     ${
       hasTextsEn === 'Yes'
         ? `<p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis || 'Aucun texte transmis')}</p>`
         : `<p><strong>Textes fournis :</strong><br>Aucun texte transmis pour le moment</p>`
     }
 
-    <p><strong>Avez-vous votre logo ?</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
+    <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
+
     ${
       realHasLogoEn === 'Yes'
-        ? `<p><strong>Nom du fichier logo reçu :</strong><br>${escapeHtml(logoFileNames || 'Voir section fichiers envoyés')}</p>`
-        : `<p><strong>Nom du fichier logo reçu :</strong><br>Aucun logo reçu</p>`
+        ? `<p><strong>Fichier logo :</strong><br>Voir la section « Fichiers envoyés » ci-dessous</p>`
+        : ``
     }
 
-    <p><strong>Avez-vous des images / visuels ?</strong> ${escapeHtml(realHasImagesEn || 'Non précisé')}</p>
+    <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn || 'Non précisé')}</p>
     ${
       realHasImagesEn === 'Yes'
-        ? `
-          <p><strong>Volume annoncé :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>
-          <p><strong>Nombre réel de fichiers image reçus :</strong> ${escapeHtml(String(uploadedImagesCount))}</p>
-          <p><strong>Noms des fichiers image reçus :</strong><br>${escapeHtml(imageFileNames || 'Voir section fichiers envoyés')}</p>
-        `
-        : `
-          <p><strong>Volume annoncé :</strong> ${escapeHtml(nombreImages || 'Aucun volume précisé')}</p>
-          <p><strong>Nombre réel de fichiers image reçus :</strong> 0</p>
-          <p><strong>Noms des fichiers image reçus :</strong><br>Aucune image reçue</p>
-        `
+        ? `<p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>`
+        : `<p><strong>Nombre d’images :</strong> Aucun volume précisé</p>`
     }
 
     <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles || 'Aucun lien transmis')}</p>
     <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations || 'Aucune inspiration précisée')}</p>
     <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs || 'Aucune direction de marque précisée')}</p>
   `;
-  const googleBusinessHtml = hasGoogleBusinessDetails
+
+   const googleBusinessHtml = hasGoogleBusinessDetails
   ? `
     <h3>Google Business</h3>
 
@@ -847,13 +829,13 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
     ${
       hasExistingGoogleBusinessEn === 'Yes'
         ? `<p><strong>Lien de la fiche actuelle :</strong><br>${escapeHtml(googleBusinessUrl || 'Non précisé')}</p>`
-        : ''
+        : ``
     }
 
     ${
       hasExistingGoogleBusinessEn === 'No'
         ? `<p><strong>Créer une nouvelle fiche Google Business :</strong> ${escapeHtml(createGoogleBusinessEn || 'Non précisé')}</p>`
-        : ''
+        : ``
     }
 
     ${
@@ -866,13 +848,13 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
           <p><strong>Catégorie d’activité :</strong> ${escapeHtml(googleBusinessCategory || 'Non précisé')}</p>
           <p><strong>Informations importantes à afficher :</strong><br>${escapeHtml(googleBusinessInfos || 'Aucune information précisée')}</p>
         `
-        : ''
+        : ``
     }
 
     ${
       hasExistingGoogleBusinessEn === 'Yes'
         ? `<p><strong>Améliorations souhaitées :</strong><br>${escapeHtml(googleBusinessImprove || 'Aucune amélioration précisée')}</p>`
-        : ''
+        : ``
     }
 
     <p><strong>Relier le futur site à la présence locale :</strong><br>${escapeHtml(googleBusinessGoal || 'Non précisé')}</p>
