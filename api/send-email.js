@@ -755,14 +755,6 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
     }
 
     <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
-
-    <p><strong>Images / visuels disponibles :</strong> ${escapeHtml(realHasImagesEn || 'Non précisé')}</p>
-    ${
-      realHasImagesEn === 'Yes'
-        ? `<p><strong>Nombre d’images :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>`
-        : `<p><strong>Nombre d’images :</strong> Aucun volume précisé</p>`
-    }
-
     <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles || 'Aucun lien transmis')}</p>
     <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations || 'Aucune inspiration précisée')}</p>
     <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs || 'Aucune direction de marque précisée')}</p>
