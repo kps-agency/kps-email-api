@@ -759,81 +759,78 @@ const realHasImagesEn = hasUploadedImages ? 'Yes' : 'No';
     <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations || 'Aucune inspiration précisée')}</p>
     <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs || 'Aucune direction de marque précisée')}</p>
   `
-  : `
-    <h3>Ressources / direction créative</h3>
+: `
+  <h3>Ressources / direction créative</h3>
 
-    <p><strong>Contenus déjà prêts :</strong> ${escapeHtml(hasContentEn || 'Non précisé')}</p>
+  <p><strong>Contenus déjà prêts :</strong> ${escapeHtml(hasContentEn || 'Non précisé')}</p>
 
-    ${
-      hasContentEn === 'No'
-        ? `<p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements || 'Non précisé')}</p>`
-        : `<p><strong>Éléments manquants :</strong><br>Aucun manque signalé</p>`
-    }
+  ${
+    hasContentEn === 'No'
+      ? `<p><strong>Éléments manquants :</strong><br>${escapeHtml(missingElements || 'Non précisé')}</p>`
+      : `<p><strong>Éléments manquants :</strong><br>Aucun manque signalé</p>`
+  }
 
-    <p><strong>Textes déjà prêts :</strong> ${escapeHtml(hasTextsEn || 'Non précisé')}</p>
-    ${
-      hasTextsEn === 'Yes'
-        ? `<p><strong>Textes fournis :</strong><br>${escapeHtml(textesFournis || 'Aucun texte transmis')}</p>`
-        : `<p><strong>Textes fournis :</strong><br>Aucun texte transmis pour le moment</p>`
-    }
+  <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
 
-    <p><strong>Logo disponible :</strong> ${escapeHtml(realHasLogoEn || 'Non précisé')}</p>
+  ${
+    realHasLogoEn === 'Yes'
+      ? `<p><strong>Fichier logo :</strong><br>Voir la section « Fichiers envoyés » ci-dessous</p>`
+      : ''
+  }
 
-    ${
-      realHasLogoEn === 'Yes'
-        ? `<p><strong>Fichier logo :</strong><br>Voir la section « Fichiers envoyés » ci-dessous</p>`
-        : ``
-    }
+  <p><strong>Vos textes (copier-coller ou lien Drive/Notion) :</strong><br>${escapeHtml(textesFournis || 'Aucun texte transmis')}</p>
 
-    <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles || 'Aucun lien transmis')}</p>
-    <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations || 'Aucune inspiration précisée')}</p>
-    <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs || 'Aucune direction de marque précisée')}</p>
-  `;
+  <p><strong>Nombre d’images à intégrer :</strong> ${escapeHtml(nombreImages || 'Non précisé')}</p>
 
-   const googleBusinessHtml = hasGoogleBusinessDetails
+  <p><strong>Liens utiles :</strong><br>${escapeHtml(liensUtiles || 'Aucun lien transmis')}</p>
+  <p><strong>Inspirations design :</strong><br>${escapeHtml(inspirations || 'Aucune inspiration précisée')}</p>
+  <p><strong>Couleurs / branding :</strong><br>${escapeHtml(couleurs || 'Aucune direction de marque précisée')}</p>
+`;
+
+const googleBusinessHtml = hasGoogleBusinessDetails
   ? `
-    <h3>Google Business</h3>
+      <h3>Google Business</h3>
 
-    <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn || 'Non précisé')}</p>
-    <p><strong>Fiche Google Business existante :</strong> ${escapeHtml(hasExistingGoogleBusinessEn || 'Non précisé')}</p>
+      <p><strong>Accompagnement Google Business :</strong> ${escapeHtml(hasGoogleBusinessEn || 'Non précisé')}</p>
+      <p><strong>Fiche Google Business existante :</strong> ${escapeHtml(hasExistingGoogleBusinessEn || 'Non précisé')}</p>
 
-    ${
-      hasExistingGoogleBusinessEn === 'Yes'
-        ? `<p><strong>Lien de la fiche actuelle :</strong><br>${escapeHtml(googleBusinessUrl || 'Non précisé')}</p>`
-        : ``
-    }
+      ${
+        hasExistingGoogleBusinessEn === 'Yes'
+          ? `<p><strong>Lien de la fiche actuelle :</strong><br>${escapeHtml(googleBusinessUrl || 'Non précisé')}</p>`
+          : ''
+      }
 
-    ${
-      hasExistingGoogleBusinessEn === 'No'
-        ? `<p><strong>Créer une nouvelle fiche Google Business :</strong> ${escapeHtml(createGoogleBusinessEn || 'Non précisé')}</p>`
-        : ``
-    }
+      ${
+        hasExistingGoogleBusinessEn === 'No'
+          ? `<p><strong>Créer une nouvelle fiche Google Business :</strong> ${escapeHtml(createGoogleBusinessEn || 'Non précisé')}</p>`
+          : ''
+      }
 
-    ${
-      createGoogleBusinessEn === 'Yes' || hasExistingGoogleBusinessEn === 'Yes'
-        ? `
-          <p><strong>Nom de l’établissement affiché :</strong> ${escapeHtml(googleBusinessName || 'Non précisé')}</p>
-          <p><strong>Adresse / zone desservie :</strong> ${escapeHtml(googleBusinessAddress || 'Non précisé')}</p>
-          <p><strong>Téléphone affiché :</strong> ${escapeHtml(googleBusinessPhone || 'Non précisé')}</p>
-          <p><strong>Site web à relier :</strong> ${escapeHtml(googleBusinessWebsite || 'Non précisé')}</p>
-          <p><strong>Catégorie d’activité :</strong> ${escapeHtml(googleBusinessCategory || 'Non précisé')}</p>
-          <p><strong>Informations importantes à afficher :</strong><br>${escapeHtml(googleBusinessInfos || 'Aucune information précisée')}</p>
-        `
-        : ``
-    }
+      ${
+        createGoogleBusinessEn === 'Yes' || hasExistingGoogleBusinessEn === 'Yes'
+          ? `
+              <p><strong>Nom de l’établissement affiché :</strong> ${escapeHtml(googleBusinessName || 'Non précisé')}</p>
+              <p><strong>Adresse / zone desservie :</strong> ${escapeHtml(googleBusinessAddress || 'Non précisé')}</p>
+              <p><strong>Téléphone affiché :</strong> ${escapeHtml(googleBusinessPhone || 'Non précisé')}</p>
+              <p><strong>Site web à relier :</strong> ${escapeHtml(googleBusinessWebsite || 'Non précisé')}</p>
+              <p><strong>Catégorie d’activité :</strong> ${escapeHtml(googleBusinessCategory || 'Non précisé')}</p>
+              <p><strong>Informations importantes à afficher :</strong><br>${escapeHtml(googleBusinessInfos || 'Aucune information précisée')}</p>
+            `
+          : ''
+      }
 
-    ${
-      hasExistingGoogleBusinessEn === 'Yes'
-        ? `<p><strong>Améliorations souhaitées :</strong><br>${escapeHtml(googleBusinessImprove || 'Aucune amélioration précisée')}</p>`
-        : ``
-    }
+      ${
+        hasExistingGoogleBusinessEn === 'Yes'
+          ? `<p><strong>Améliorations souhaitées :</strong><br>${escapeHtml(googleBusinessImprove || 'Aucune amélioration précisée')}</p>`
+          : ''
+      }
 
-    <p><strong>Relier le futur site à la présence locale :</strong><br>${escapeHtml(googleBusinessGoal || 'Non précisé')}</p>
-  `
+      <p><strong>Relier le futur site à la présence locale :</strong><br>${escapeHtml(googleBusinessGoal || 'Non précisé')}</p>
+    `
   : `
-    <h3>Google Business</h3>
-    <p>Aucune demande Google Business spécifique n’a été précisée dans ce brief.</p>
-  `;
+      <h3>Google Business</h3>
+      <p>Aucune demande Google Business spécifique n’a été précisée dans ce brief.</p>
+    `;
 
   const kpsEmailHtml = `
   <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
