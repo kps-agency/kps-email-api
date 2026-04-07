@@ -234,6 +234,9 @@ function buildUploadedFilesHtml(files) {
   `;
 }
 
+const LANDING_PAGE_STRIPE_URL = 'https://buy.stripe.com/bJeeV69LM6ZxgudaWS0gw00';
+const SITE_COMPLET_STRIPE_URL = 'https://buy.stripe.com/5kQaEOgaaerZ0vf6GC0gw01';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -272,7 +275,12 @@ export default async function handler(req, res) {
     const offre = safe(
       pickFirst(formData, ['offre', 'offer', 'selectedOffer'])
     );
-
+    
+    const stripePaymentUrl =
+  offre && offre.includes('Landing Page')
+    ? LANDING_PAGE_STRIPE_URL
+    : SITE_COMPLET_STRIPE_URL;
+    
     const confirmation = boolToOuiNon(
       pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
     );
@@ -958,23 +966,49 @@ const googleBusinessHtml = hasGoogleBusinessDetails
       });
     }
 
-    const clientEmailHtml = `
-      <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
-        <h2>Merci pour votre brief</h2>
-        <p>Bonjour ${escapeHtml(nom)},</p>
-        <p>
-          Nous avons bien reçu votre demande pour l’offre
-          <strong>${escapeHtml(offre)}</strong>.
-        </p>
-        <p>
-          Notre équipe va étudier votre brief et revenir vers vous avec les prochaines étapes.
-        </p>
-        <p>
-          Si un acompte ou un lien de paiement doit être envoyé ensuite, nous vous le transmettrons dans le bon cadre.
-        </p>
-        <p>À bientôt,<br><strong>KPS Agency</strong></p>
-      </div>
-    `;
+   const clientEmailHtml = `
+  <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
+    <h2>Merci pour votre brief</h2>
+    <p>Bonjour ${escapeHtml(nom)},</p>
+
+    <p>
+      Nous avons bien reçu votre demande pour l’offre
+      <strong>${escapeHtml(offre)}</strong>.
+    </p>
+
+    <p>
+      Pour confirmer le lancement de votre projet, merci de régler l’acompte de 50% via le lien ci-dessous :
+    </p>
+
+    <p style="margin: 24px 0;">
+      <a
+        href="${stripePaymentUrl}"
+        target="_blank"
+        style="
+          display: inline-block;
+          background: #0f172a;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 14px 22px;
+          border-radius: 10px;
+          font-weight: 700;
+        "
+      >
+        Régler l’acompte de 50%
+      </a>
+    </p>
+
+    <p>
+      Une fois le paiement effectué, votre demande pourra être traitée et validée.
+    </p>
+
+    <p>
+      Si vous avez la moindre question, vous pouvez simplement répondre à cet email.
+    </p>
+
+    <p>À bientôt,<br><strong>KPS Agency</strong></p>
+  </div>
+`;
 
     const clientEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
