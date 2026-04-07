@@ -235,7 +235,7 @@ function buildUploadedFilesHtml(files) {
 }
 
 const LANDING_PAGE_STRIPE_URL = 'https://buy.stripe.com/bJeeV69LM6ZxgudaWS0gw00';
-const SITE_COMPLET_STRIPE_URL = 'https://buy.stripe.com/5kQaEOgaaerZ0vf6GC0gw01';
+const SITE_COMPLET_STRIPE_URL = 'https://buy.stripe.com/5kQaEQgaaerZ0vf6GC0gw01';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
