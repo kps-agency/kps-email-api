@@ -1,6 +1,12 @@
 import { Resend } from 'resend';
+import { createClient } from '@supabase/supabase-js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 function safe(value) {
   if (value === undefined || value === null || value === '') return '-';
@@ -280,6 +286,31 @@ export default async function handler(req, res) {
   offre && offre.includes('Landing Page')
     ? LANDING_PAGE_STRIPE_URL
     : SITE_COMPLET_STRIPE_URL;
+
+    const { data: pendingBrief, error: insertError } = await supabase
+  .from('briefs_pending')
+  .insert([
+    {
+      offre: offre,
+      client_email: clientEmail,
+      client_name: nom,
+      company: entreprise,
+      phone: telephone,
+      stripe_payment_url: stripePaymentUrl,
+      form_data: formData,
+      files: uploadedFiles
+    }
+  ])
+  .select()
+  .single();
+
+if (insertError) {
+  console.error('Erreur insertion Supabase :', insertError);
+  return res.status(500).json({
+    error: 'Failed to save brief in database',
+    details: insertError.message,
+  });
+}
     
     const confirmation = boolToOuiNon(
       pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
@@ -951,20 +982,8 @@ const googleBusinessHtml = hasGoogleBusinessDetails
   </div>
 `;
 
-    const kpsEmailResult = await resend.emails.send({
-      from: 'KPS Agency <contact@kps-agency.com>',
-      to: 'kps.agency.ia@gmail.com',
-      subject: `Nouveau Brief Reçu - ${offre}`,
-      html: kpsEmailHtml,
-    });
-
-    if (kpsEmailResult.error) {
-      console.error('Erreur envoi mail KPS:', kpsEmailResult.error);
-      return res.status(500).json({
-        error: 'Failed to send email to KPS',
-        details: kpsEmailResult.error,
-      });
-    }
+    
+  const kpsEmailResult = null;
 
    const clientEmailHtml = `
   <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
@@ -1028,7 +1047,7 @@ const googleBusinessHtml = hasGoogleBusinessDetails
     return res.status(200).json({
       success: true,
       message: 'Emails sent successfully',
-      kpsEmailId: kpsEmailResult.data?.id || null,
+      kpsEmailId: null,
       clientEmailId: clientEmailResult.data?.id || null,
       filesCount: uploadedFiles.length,
       note: 'Les gros fichiers doivent idéalement être uploadés sur Cloudinary puis envoyés ici sous forme d’URLs.',
