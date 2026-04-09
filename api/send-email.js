@@ -286,31 +286,6 @@ export default async function handler(req, res) {
   offre && offre.includes('Landing Page')
     ? LANDING_PAGE_STRIPE_URL
     : SITE_COMPLET_STRIPE_URL;
-
-    const { data: pendingBrief, error: insertError } = await supabase
-  .from('briefs_pending')
-  .insert([
-    {
-      offre: offre,
-      client_email: clientEmail,
-      client_name: nom,
-      company: entreprise,
-      phone: telephone,
-      stripe_payment_url: stripePaymentUrl,
-      form_data: formData,
-      files: uploadedFiles
-    }
-  ])
-  .select()
-  .single();
-
-if (insertError) {
-  console.error('Erreur insertion Supabase :', insertError);
-  return res.status(500).json({
-    error: 'Failed to save brief in database',
-    details: insertError.message,
-  });
-}
     
     const confirmation = boolToOuiNon(
       pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
@@ -730,7 +705,31 @@ if (insertError) {
     // ========= FICHIERS =========
     const uploadedFiles = extractUploadedFiles(formData);
     const uploadedFilesHtml = buildUploadedFilesHtml(uploadedFiles);
-   
+
+    const { data: pendingBrief, error: insertError } = await supabase
+  .from('briefs_pending')
+  .insert([
+    {
+      offre: offre,
+      client_email: clientEmail,
+      client_name: nom,
+      company: entreprise,
+      phone: telephone,
+      stripe_payment_url: stripePaymentUrl,
+      form_data: formData,
+      files: uploadedFiles
+    }
+  ])
+  .select()
+  .single();
+
+if (insertError) {
+  console.error('Erreur insertion Supabase :', insertError);
+  return res.status(500).json({
+    error: 'Failed to save brief in database',
+    details: insertError.message
+  });
+}
     // ========= BLOCS HTML =========
     const projectHtml = isLandingPage
   ? `
