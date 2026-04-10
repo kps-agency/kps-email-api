@@ -71,6 +71,14 @@ export default async function handler(req, res) {
       process.env.STRIPE_WEBHOOK_SECRET
     );
 
+console.log('WEBHOOK HIT');
+console.log('EVENT TYPE:', event.type);
+console.log('SESSION ID:', event.data?.object?.id);
+console.log('SESSION MODE:', event.data?.object?.mode);
+console.log('SESSION CUSTOMER EMAIL:', event.data?.object?.customer_details?.email);
+console.log('SESSION METADATA:', event.data?.object?.metadata);
+console.log('SESSION PAYMENT LINK:', event.data?.object?.payment_link);
+    
     if (event.type !== 'checkout.session.completed') {
       return res.status(200).json({ received: true, ignored: true });
     }
@@ -88,13 +96,16 @@ export default async function handler(req, res) {
 
     const paymentLinkId = session.payment_link || null;
 
-    const { data: briefs, error: fetchError } = await supabase
-      .from('briefs_pending')
-      .select('*')
-      .eq('client_email', customerEmail)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
+console.log('WEBHOOK SEARCH EMAIL:', customerEmail);
+console.log('WEBHOOK SEARCH PAYMENT LINK:', paymentLinkId);
+    
+const { data: briefs, error: fetchError } = await supabase
+  .from('briefs_pending')
+  .select('*')
+  .eq('client_email', customerEmail)
+  .order('created_at', { ascending: false });
 
+   
     if (fetchError) {
       return res.status(500).json({
         error: 'Failed to fetch pending brief',
@@ -102,14 +113,20 @@ export default async function handler(req, res) {
       });
     }
 
-    if (!briefs || briefs.length === 0) {
-      return res.status(404).json({
-        error: 'No pending brief found for this email',
-      });
-    }
+ if (!briefs || briefs.length === 0) {
+  console.log('NO BRIEF FOUND FOR EMAIL:', customerEmail);
+  return res.status(404).json({
+    error: 'No brief found for this email',
+  });
+}
 
     let matchedBrief = briefs[0];
 
+console.log('BRIEFS FOUND:', briefs.length);
+console.log('FIRST BRIEF ID:', matchedBrief?.id);
+console.log('FIRST BRIEF STATUS:', matchedBrief?.status);
+console.log('FIRST BRIEF PAYMENT LINK:', matchedBrief?.stripe_payment_url);
+    
     if (paymentLinkId) {
       const candidate = briefs.find((brief) =>
         safe(brief.stripe_payment_url).includes(paymentLinkId)
