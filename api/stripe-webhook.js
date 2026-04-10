@@ -171,47 +171,50 @@ console.log('FIRST BRIEF PAYMENT LINK:', matchedBrief?.stripe_payment_url);
 
     const uploadedFilesHtml = renderFiles(uploadedFiles);
 
-    const kpsEmailHtml = `
-      <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
-        <div style="max-width: 760px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
-          <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
-            <h1 style="margin: 0; font-size: 24px;">💳 Paiement confirmé - KPS Agency</h1>
-            <p style="margin: 10px 0 0; font-size: 14px; color: #d1d5db;">
-              Offre concernée : <strong>${escapeHtml(offre)}</strong>
-            </p>
-          </div>
+const kpsEmailHtml = `
+<div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
+  <div style="max-width: 760px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
+    
+    <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
+      <h1 style="margin: 0; font-size: 24px;">💳 Paiement confirmé - KPS Agency</h1>
+      <p style="margin: 10px 0 0; font-size: 14px; color: #d1d5db;">
+        Offre concernée : <strong>${escapeHtml(offre)}</strong>
+      </p>
+    </div>
 
-          <div style="padding: 28px;">
-            <div style="margin-bottom: 28px; padding: 16px 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;">
-              <h2 style="margin: 0 0 12px 0; font-size: 18px;">Résumé rapide</h2>
-              <p style="margin: 6px 0;"><strong>Email client :</strong> ${escapeHtml(clientEmail)}</p>
-              <p style="margin: 6px 0;"><strong>Nom :</strong> ${escapeHtml(nom)}</p>
-              <p style="margin: 6px 0;"><strong>Téléphone :</strong> ${escapeHtml(telephone)}</p>
-              <p style="margin: 6px 0;"><strong>Entreprise :</strong> ${escapeHtml(entreprise)}</p>
-              <p style="margin: 6px 0;"><strong>Session Stripe :</strong> ${escapeHtml(session.id)}</p>
-            </div>
+    <div style="padding: 28px;">
 
-            <div style="margin-bottom: 28px;">
-              <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
-                Projet
-              </h2>
-              <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
-                ${projectHtml}
-              </div>
-            </div>
+      <div style="margin-bottom: 28px; padding: 16px 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;">
+        <h2 style="margin: 0 0 12px 0; font-size: 18px;">Résumé rapide</h2>
+        <p style="margin: 6px 0;"><strong>Email client :</strong> ${escapeHtml(clientEmail)}</p>
+        <p style="margin: 6px 0;"><strong>Nom :</strong> ${escapeHtml(nom)}</p>
+        <p style="margin: 6px 0;"><strong>Téléphone :</strong> ${escapeHtml(telephone)}</p>
+        <p style="margin: 6px 0;"><strong>Entreprise :</strong> ${escapeHtml(entreprise)}</p>
+        <p style="margin: 6px 0;"><strong>Session Stripe :</strong> ${escapeHtml(session.id)}</p>
+      </div>
 
-            <div style="margin-bottom: 28px;">
-              <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
-                Fichiers envoyés
-              </h2>
-              <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
-                ${uploadedFilesHtml}
-              </div>
-            </div>
-          </div>
+      <div style="margin-bottom: 28px;">
+        <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+          Projet
+        </h2>
+        <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+          ${projectHtml}
         </div>
       </div>
-    `;
+
+      <div style="margin-bottom: 28px;">
+        <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+          Fichiers envoyés
+        </h2>
+        <div style="padding: 18px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+          ${uploadedFilesHtml}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+`;
 
     const kpsEmailResult = await resend.emails.send({
       from: 'KPS Agency <contact@kps-agency.com>',
