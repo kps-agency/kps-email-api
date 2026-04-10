@@ -240,8 +240,8 @@ function buildUploadedFilesHtml(files) {
   `;
 }
 
-const LANDING_PAGE_STRIPE_URL = 'https://buy.stripe.com/bJeeV69LM6ZxgudaWS0gw00';
-const SITE_COMPLET_STRIPE_URL = 'https://buy.stripe.com/5kQaEQgaaerZ0vf6GC0gw01';
+const LANDING_PAGE_STRIPE_URL = 'https://buy.stripe.com/test_bJefZjakv9nq7GT97MbAs02';
+const SITE_COMPLET_STRIPE_URL = 'https://buy.stripe.com/test_28E00l50b57ae5h3NsbAs03';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
