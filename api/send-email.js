@@ -902,7 +902,7 @@ const googleBusinessHtml = hasGoogleBusinessDetails
             </tr>
             <tr>
               <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb;"><strong>Email</strong></td>
-              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(email)}</td>
+              <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${escapeHtml(clientemail)}</td>
             </tr>
             <tr>
               <td style="padding: 10px 12px; border: 1px solid #e5e7eb; background: #f9fafb;"><strong>Téléphone</strong></td>
