@@ -593,16 +593,6 @@ export default async function handler(req, res) {
 
     const uploadedFilesHtml = buildUploadedFilesHtml(uploadedFiles);
 
-    const kpsEmailHtml = `
-      <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
-        <div style="max-width: 760px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
-
-          <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
-            <h1 style="margin: 0; font-size: 24px;">💳 Paiement confirmé - KPS Agency</h1>
-            <p style="margin: 10px 0 0 0; font-size: 14px; co    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
 function renderFiles(uploadedFiles = []) {
   if (!Array.isArray(uploadedFiles) || uploadedFiles.length === 0) {
     return '<p>Aucun fichier envoyé.</p>';
