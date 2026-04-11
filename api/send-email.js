@@ -240,15 +240,13 @@ function buildUploadedFilesHtml(files) {
   `;
 }
 
-const LANDING_PAGE_STRIPE_URL = 'https://buy.stripe.com/bJeeV69LM6ZxgudaWS0gw00';
-const SITE_COMPLET_STRIPE_URL = 'https://buy.stripe.com/5kQaEQgaaerZ0vf6GC0gw01';
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
+
     return res.status(200).end();
   }
 
@@ -281,11 +279,6 @@ export default async function handler(req, res) {
     const offre = safe(
       pickFirst(formData, ['offre', 'offer', 'selectedOffer'])
     );
-    
-    const stripePaymentUrl =
-  offre && offre.includes('Landing Page')
-    ? LANDING_PAGE_STRIPE_URL
-    : SITE_COMPLET_STRIPE_URL;
     
     const confirmation = boolToOuiNon(
       pickFirst(formData, ['confirmation', 'commercialTermsConfirmed'])
@@ -715,7 +708,6 @@ export default async function handler(req, res) {
       client_name: nom,
       company: entreprise,
       phone: telephone,
-      stripe_payment_url: stripePaymentUrl,
       form_data: formData,
       files: uploadedFiles
     }
