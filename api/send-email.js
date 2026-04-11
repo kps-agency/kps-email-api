@@ -1028,35 +1028,53 @@ const googleBusinessHtml = hasGoogleBusinessDetails
   </div>
 `;
 
-    const clientEmailResult = await resend.emails.send({
-      from: 'KPS Agency <contact@kps-agency.com>',
-      to: clientEmail,
-      subject: 'Confirmation de réception de votre brief - KPS Agency',
-      html: clientEmailHtml,
-    });
+   const clientEmailHtml = `
+  <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
+    <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
+      
+      <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
+        <h1 style="margin: 0; font-size: 24px;">✅ Brief bien reçu - KPS Agency</h1>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #d1d5db;">
+          Offre concernée : <strong>${escapeHtml(offre)}</strong>
+        </p>
+      </div>
 
-    if (clientEmailResult.error) {
-      console.error('Erreur envoi mail client:', clientEmailResult.error);
-      return res.status(500).json({
-        error: 'Failed to send confirmation email',
-        details: clientEmailResult.error,
-      });
-    }
+      <div style="padding: 28px;">
+        <p style="margin-top: 0;">Bonjour ${escapeHtml(nom)},</p>
 
-    return res.status(200).json({
-      success: true,
-      message: 'Emails sent successfully',
-      kpsEmailId: null,
-      clientEmailId: clientEmailResult.data?.id || null,
-      filesCount: uploadedFiles.length,
-      note: 'Les gros fichiers doivent idéalement être uploadés sur Cloudinary puis envoyés ici sous forme d’URLs.',
-    });
-  } catch (error) {
-    console.error('Server error:', error);
+        <p>
+          Nous confirmons avoir bien reçu votre brief concernant l’offre
+          <strong>${escapeHtml(offre)}</strong>.
+        </p>
 
-    return res.status(500).json({
-      error: 'Server error',
-      details: error.message,
-    });
-  }
-}
+        <p>
+          Notre équipe va maintenant analyser votre demande, relire les éléments transmis
+          et étudier la faisabilité ainsi que le cadrage du projet.
+        </p>
+
+        <div style="margin: 24px 0; padding: 16px 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="margin: 0 0 12px 0; font-size: 18px;">Résumé rapide</h2>
+          <p style="margin: 6px 0;"><strong>Nom :</strong> ${escapeHtml(nom)}</p>
+          <p style="margin: 6px 0;"><strong>Email :</strong> ${escapeHtml(clientEmail)}</p>
+          <p style="margin: 6px 0;"><strong>Offre :</strong> ${escapeHtml(offre)}</p>
+          <p style="margin: 6px 0;"><strong>Entreprise / activité :</strong> ${escapeHtml(entreprise)}</p>
+        </div>
+
+        <p>
+          Nous reviendrons vers vous sous <strong>48 heures maximum</strong> avec un retour clair
+          sur votre brief et la suite à donner.
+        </p>
+
+        <p>
+          Si un ajustement ou une précision est nécessaire, nous vous recontacterons directement
+          par email.
+        </p>
+
+        <p style="margin-bottom: 0;">
+          Merci pour votre confiance,<br>
+          <strong>KPS Agency</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+`;
