@@ -982,51 +982,21 @@ const googleBusinessHtml = hasGoogleBusinessDetails
 `;
 
     
-  const kpsEmailResult = null;
+ const kpsEmailResult = await resend.emails.send({
+  from: 'KPS Agency <contact@kps-agency.com>',
+  to: 'kps.agency.ia@gmail.com',
+  subject: `Nouveau Brief Reçu - ${offre}`,
+  html: kpsEmailHtml,
+});
 
-   const clientEmailHtml = `
-  <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
-    <h2>Merci pour votre brief</h2>
-    <p>Bonjour ${escapeHtml(nom)},</p>
+if (kpsEmailResult.error) {
+  console.error('Erreur envoi mail prestataire:', kpsEmailResult.error);
+  return res.status(500).json({
+    error: 'Failed to send provider email',
+    details: kpsEmailResult.error,
+  });
+}
 
-    <p>
-      Nous avons bien reçu votre demande pour l’offre
-      <strong>${escapeHtml(offre)}</strong>.
-    </p>
-
-    <p>
-      Pour confirmer le lancement de votre projet, merci de régler l’acompte de 50% via le lien ci-dessous :
-    </p>
-
-    <p style="margin: 24px 0;">
-      <a
-        href="${stripePaymentUrl}"
-        target="_blank"
-        style="
-          display: inline-block;
-          background: #0f172a;
-          color: #ffffff;
-          text-decoration: none;
-          padding: 14px 22px;
-          border-radius: 10px;
-          font-weight: 700;
-        "
-      >
-        Régler l’acompte de 50%
-      </a>
-    </p>
-
-    <p>
-      Une fois le paiement effectué, votre demande pourra être traitée et validée.
-    </p>
-
-    <p>
-      Si vous avez la moindre question, vous pouvez simplement répondre à cet email.
-    </p>
-
-    <p>À bientôt,<br><strong>KPS Agency</strong></p>
-  </div>
-`;
 
    const clientEmailHtml = `
   <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
