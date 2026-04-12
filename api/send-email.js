@@ -1040,3 +1040,35 @@ if (kpsEmailResult.error) {
     </div>
   </div>
 `;
+
+    const clientEmailResult = await resend.emails.send({
+      from: 'KPS Agency <contact@kps-agency.com>',
+      to: clientEmail,
+      subject: 'Brief bien reçu - KPS Agency',
+      html: clientEmailHtml,
+    });
+
+    if (clientEmailResult.error) {
+      console.error('Erreur envoi mail client:', clientEmailResult.error);
+      return res.status(500).json({
+        error: 'Failed to send client email',
+        details: clientEmailResult.error,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Client and provider emails sent successfully',
+      kpsEmailId: kpsEmailResult.data?.id || null,
+      clientEmailId: clientEmailResult.data?.id || null,
+      filesCount: uploadedFiles.length,
+    });
+  } catch (error) {
+    console.error('Server error:', error);
+
+    return res.status(500).json({
+      error: 'Server error',
+      details: error.message,
+    });
+  }
+}
