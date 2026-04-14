@@ -262,7 +262,99 @@ export default async function handler(req, res) {
         error: 'Missing formData or clientEmail',
       });
     }
+const formatList = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean).join(', ');
+  if (value === undefined || value === null || value === '') return '';
+  return String(value).trim();
+};
 
+const formType = safe(req.body?.formType || '');
+const packType = safe(pickFirst(formData, ['packType']));
+const details = safe(pickFirst(formData, ['details']));
+const socialOfferRaw = safe(pickFirst(formData, ['offre', 'offer', 'selectedOffer']));
+
+const isSocialMedia =
+  String(formType).toLowerCase().includes('social media') ||
+  String(formType).toLowerCase().includes('social/médias') ||
+  String(formType).toLowerCase().includes('social medias') ||
+  String(socialOfferRaw).toLowerCase().includes('pack standard') ||
+  String(socialOfferRaw).toLowerCase().includes('pack complet');
+
+const objectifSM = safe(pickFirst(formData, ['objectif']));
+const presentationSM = safe(pickFirst(formData, ['presentation']));
+const propositionSM = safe(pickFirst(formData, ['proposition']));
+const pourquoiChoisirSM = safe(pickFirst(formData, ['pourquoiChoisir']));
+const clientIdealSM = safe(pickFirst(formData, ['clientIdeal']));
+const typeCibleSM = safe(pickFirst(formData, ['typeCible']));
+const zoneGeoSM = safe(pickFirst(formData, ['zoneGeo']));
+const reseauxSM = formatList(formData.reseaux);
+
+const lienInstagramSM = safe(pickFirst(formData, ['lienInstagram']));
+const lienFacebookSM = safe(pickFirst(formData, ['lienFacebook']));
+const lienLinkedInSM = safe(pickFirst(formData, ['lienLinkedIn']));
+const lienTikTokSM = safe(pickFirst(formData, ['lienTikTok']));
+
+const charteGraphiqueSM = safe(pickFirst(formData, ['charteGraphique']));
+const lienCharteSM = safe(pickFirst(formData, ['lienCharte']));
+const logoDispoSM = safe(pickFirst(formData, ['logoDispo']));
+const lienLogoSM = safe(pickFirst(formData, ['lienLogo']));
+const couleursSM = safe(pickFirst(formData, ['couleurs']));
+const tonSM = safe(pickFirst(formData, ['ton']));
+
+const productionDispoSM = formatList(formData.productionDispo);
+const lienVideosSM = safe(pickFirst(formData, ['lienVideos']));
+const lienPhotosSM = safe(pickFirst(formData, ['lienPhotos']));
+const temoignagesTexteSM = safe(pickFirst(formData, ['temoignagesTexte']));
+const lienTemoignagesSM = safe(pickFirst(formData, ['lienTemoignages']));
+const produitsAFilmerSM = safe(pickFirst(formData, ['produitsAFilmer']));
+const lieuTournageSM = safe(pickFirst(formData, ['lieuTournage']));
+const contraintesLieuSM = safe(pickFirst(formData, ['contraintesLieu']));
+const creationContenuDispoSM = safe(pickFirst(formData, ['creationContenuDispo']));
+const disponibiliteRythmeSM = safe(pickFirst(formData, ['disponibiliteRythme']));
+const disponibilitePeriodesSM = safe(pickFirst(formData, ['disponibilitePeriodes']));
+
+const thematiquesSM = safe(pickFirst(formData, ['thematiques']));
+const sujetsEviterSM = safe(pickFirst(formData, ['sujetsEviter']));
+const inspirationsSM = safe(pickFirst(formData, ['inspirations']));
+
+const cmSouhaitsSM = formatList(formData.cmSouhaits);
+const cmFrequenceSM = safe(pickFirst(formData, ['cmFrequence']));
+const cmAccesInfosSM = safe(pickFirst(formData, ['cmAccesInfos']));
+
+const nombreAbonnesSM = safe(pickFirst(formData, ['nombreAbonnes']));
+const engagementAttenduSM = safe(pickFirst(formData, ['engagementAttendu']));
+const leadGenSM = safe(pickFirst(formData, ['leadGen']));
+
+const accesSM = formatList(formData.acces);
+const accesLienInstagramSM = safe(pickFirst(formData, ['accesLienInstagram']));
+const accesLienFacebookSM = safe(pickFirst(formData, ['accesLienFacebook']));
+const accesLienLinkedInSM = safe(pickFirst(formData, ['accesLienLinkedIn']));
+const accesLienTikTokSM = safe(pickFirst(formData, ['accesLienTikTok']));
+const outilsSM = safe(pickFirst(formData, ['outils']));
+
+const dateDemarrageSM = safe(pickFirst(formData, ['dateDemarrage']));
+const prefCommunicationSM = safe(pickFirst(formData, ['prefCommunication']));
+
+const confirmation1SM = formData.confirmation1 ? 'Oui' : 'Non';
+const confirmation2SM = formData.confirmation2 ? 'Oui' : 'Non';
+
+const fichiersSelectionnesSM =
+  formData?.fichiersSelectionnes && typeof formData.fichiersSelectionnes === 'object'
+    ? formData.fichiersSelectionnes
+    : null;
+
+const fichiersSelectionnesHtmlSM =
+  fichiersSelectionnesSM && Object.keys(fichiersSelectionnesSM).length > 0
+    ? Object.entries(fichiersSelectionnesSM)
+        .filter(([, value]) => value)
+        .map(
+          ([label, value]) =>
+            `<p style="margin:6px 0;"><strong>${escapeHtml(label)} :</strong> ${escapeHtml(String(value))}</p>`
+        )
+        .join('')
+    : '<p style="margin:0;">Aucun nom de fichier transmis.</p>';
+
+    
     // ========= INFOS CLIENT =========
     const nom = safe(pickFirst(formData, ['nom', 'name', 'fullName']));
     const email = safe(pickFirst(formData, ['email']));
@@ -722,6 +814,226 @@ if (insertError) {
     details: insertError.message
   });
 }
+    const socialMediaKpsEmailHtml = `
+  <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
+    <div style="max-width: 760px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
+      <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
+        <h1 style="margin: 0; font-size: 24px;">📩 Nouveau Brief Social/Médias - KPS Agency</h1>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #d1d5db;">
+          Offre concernée : <strong>${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</strong>
+        </p>
+      </div>
+
+      <div style="padding: 28px;">
+        <div style="margin-bottom: 24px; padding: 16px 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="margin: 0 0 12px 0; font-size: 18px;">Résumé rapide</h2>
+          <p style="margin: 6px 0;"><strong>Pack :</strong> ${escapeHtml(packType || 'Non précisé')}</p>
+          <p style="margin: 6px 0;"><strong>Détails de l’offre :</strong> ${escapeHtml(details || 'Non précisés')}</p>
+          <p style="margin: 6px 0;"><strong>Email client :</strong> ${escapeHtml(clientEmail || 'Non précisé')}</p>
+          <p style="margin: 6px 0;"><strong>Nom :</strong> ${escapeHtml(nom || 'Non précisé')}</p>
+          <p style="margin: 6px 0;"><strong>Téléphone :</strong> ${escapeHtml(telephone || 'Non précisé')}</p>
+          <p style="margin: 6px 0;"><strong>Entreprise :</strong> ${escapeHtml(entreprise || 'Non précisée')}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            1. Informations générales
+          </h2>
+          <table style="width:100%; border-collapse: collapse;">
+            <tr><td style="padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb; width:220px;"><strong>Entreprise</strong></td><td style="padding:10px 12px; border:1px solid #e5e7eb;">${escapeHtml(entreprise)}</td></tr>
+            <tr><td style="padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb;"><strong>Site web</strong></td><td style="padding:10px 12px; border:1px solid #e5e7eb;">${escapeHtml(safe(pickFirst(formData, ['siteWeb'])))}</td></tr>
+            <tr><td style="padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb;"><strong>Secteur</strong></td><td style="padding:10px 12px; border:1px solid #e5e7eb;">${escapeHtml(safe(pickFirst(formData, ['secteur'])))}</td></tr>
+            <tr><td style="padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb;"><strong>Ville / zone</strong></td><td style="padding:10px 12px; border:1px solid #e5e7eb;">${escapeHtml(safe(pickFirst(formData, ['ville'])))}</td></tr>
+            <tr><td style="padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb;"><strong>Contact</strong></td><td style="padding:10px 12px; border:1px solid #e5e7eb;">${escapeHtml(safe(pickFirst(formData, ['contact'])))}</td></tr>
+            <tr><td style="padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb;"><strong>Email</strong></td><td style="padding:10px 12px; border:1px solid #e5e7eb;">${escapeHtml(clientEmail)}</td></tr>
+            <tr><td style="padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb;"><strong>Téléphone</strong></td><td style="padding:10px 12px; border:1px solid #e5e7eb;">${escapeHtml(telephone)}</td></tr>
+          </table>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            2. Positionnement & stratégie
+          </h2>
+          <p><strong>Objectif principal :</strong> ${escapeHtml(objectifSM)}</p>
+          <p><strong>Présentation de l’entreprise :</strong><br>${escapeHtml(presentationSM)}</p>
+          <p><strong>Proposition de valeur :</strong><br>${escapeHtml(propositionSM)}</p>
+          <p><strong>Pourquoi le client devrait la choisir :</strong><br>${escapeHtml(pourquoiChoisirSM)}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            3. Cible
+          </h2>
+          <p><strong>Client idéal :</strong><br>${escapeHtml(clientIdealSM)}</p>
+          <p><strong>Type de cible :</strong> ${escapeHtml(typeCibleSM)}</p>
+          <p><strong>Zone géographique :</strong> ${escapeHtml(zoneGeoSM)}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            4. Réseaux sociaux
+          </h2>
+          <p><strong>Réseaux sélectionnés :</strong> ${escapeHtml(reseauxSM || 'Aucun')}</p>
+          <p><strong>Instagram :</strong> ${escapeHtml(lienInstagramSM || 'Non transmis')}</p>
+          <p><strong>Facebook :</strong> ${escapeHtml(lienFacebookSM || 'Non transmis')}</p>
+          <p><strong>LinkedIn :</strong> ${escapeHtml(lienLinkedInSM || 'Non transmis')}</p>
+          <p><strong>TikTok :</strong> ${escapeHtml(lienTikTokSM || 'Non transmis')}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            5. Branding
+          </h2>
+          <p><strong>Charte graphique :</strong> ${escapeHtml(charteGraphiqueSM || 'Non précisé')}</p>
+          <p><strong>Lien charte :</strong> ${escapeHtml(lienCharteSM || 'Non transmis')}</p>
+          <p><strong>Logo disponible :</strong> ${escapeHtml(logoDispoSM || 'Non précisé')}</p>
+          <p><strong>Lien logo :</strong> ${escapeHtml(lienLogoSM || 'Non transmis')}</p>
+          <p><strong>Couleurs / style souhaité :</strong><br>${escapeHtml(couleursSM || 'Non précisé')}</p>
+          <p><strong>Ton :</strong> ${escapeHtml(tonSM || 'Non précisé')}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            6. Ressources de production
+          </h2>
+          <p><strong>Éléments disponibles :</strong> ${escapeHtml(productionDispoSM || 'Aucun')}</p>
+          <p><strong>Lien vidéos :</strong> ${escapeHtml(lienVideosSM || 'Non transmis')}</p>
+          <p><strong>Lien photos :</strong> ${escapeHtml(lienPhotosSM || 'Non transmis')}</p>
+          <p><strong>Témoignages texte :</strong><br>${escapeHtml(temoignagesTexteSM || 'Non transmis')}</p>
+          <p><strong>Lien témoignages :</strong> ${escapeHtml(lienTemoignagesSM || 'Non transmis')}</p>
+          <p><strong>Produits à filmer :</strong><br>${escapeHtml(produitsAFilmerSM || 'Non précisé')}</p>
+          <p><strong>Lieu de tournage :</strong> ${escapeHtml(lieuTournageSM || 'Non précisé')}</p>
+          <p><strong>Contraintes lieu :</strong> ${escapeHtml(contraintesLieuSM || 'Non précisées')}</p>
+          <p><strong>Disponibilité création de contenu :</strong> ${escapeHtml(creationContenuDispoSM || 'Non précisée')}</p>
+          <p><strong>Rythme de disponibilité :</strong> ${escapeHtml(disponibiliteRythmeSM || 'Non précisé')}</p>
+          <p><strong>Périodes de disponibilité :</strong> ${escapeHtml(disponibilitePeriodesSM || 'Non précisées')}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            7. Ligne éditoriale
+          </h2>
+          <p><strong>Thématiques :</strong><br>${escapeHtml(thematiquesSM || 'Non précisées')}</p>
+          <p><strong>Sujets à éviter :</strong><br>${escapeHtml(sujetsEviterSM || 'Non précisés')}</p>
+          <p><strong>Inspirations :</strong><br>${escapeHtml(inspirationsSM || 'Non précisées')}</p>
+        </div>
+
+        ${
+          packType === 'Complet'
+            ? `
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            8. Community Management
+          </h2>
+          <p><strong>Souhaits CM :</strong> ${escapeHtml(cmSouhaitsSM || 'Aucun')}</p>
+          <p><strong>Fréquence CM :</strong> ${escapeHtml(cmFrequenceSM || 'Non précisée')}</p>
+          <p><strong>Consignes / FAQ modération :</strong><br>${escapeHtml(cmAccesInfosSM || 'Non précisées')}</p>
+        </div>
+            `
+            : ''
+        }
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            ${packType === 'Complet' ? '9' : '8'}. Objectifs & KPI
+          </h2>
+          <p><strong>Nombre d’abonnés visé :</strong> ${escapeHtml(nombreAbonnesSM || 'Non précisé')}</p>
+          <p><strong>Engagement attendu :</strong><br>${escapeHtml(engagementAttenduSM || 'Non précisé')}</p>
+          <p><strong>Génération de leads :</strong> ${escapeHtml(leadGenSM || 'Non précisé')}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            ${packType === 'Complet' ? '10' : '9'}. Accès & outils
+          </h2>
+          <p><strong>Accès aux comptes :</strong> ${escapeHtml(accesSM || 'Aucun')}</p>
+          <p><strong>Instagram accès :</strong> ${escapeHtml(accesLienInstagramSM || 'Non transmis')}</p>
+          <p><strong>Facebook accès :</strong> ${escapeHtml(accesLienFacebookSM || 'Non transmis')}</p>
+          <p><strong>LinkedIn accès :</strong> ${escapeHtml(accesLienLinkedInSM || 'Non transmis')}</p>
+          <p><strong>TikTok accès :</strong> ${escapeHtml(accesLienTikTokSM || 'Non transmis')}</p>
+          <p><strong>Outils :</strong> ${escapeHtml(outilsSM || 'Non précisés')}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            ${packType === 'Complet' ? '11' : '10'}. Organisation
+          </h2>
+          <p><strong>Date de démarrage :</strong> ${escapeHtml(dateDemarrageSM || 'Non précisée')}</p>
+          <p><strong>Préférence de communication :</strong> ${escapeHtml(prefCommunicationSM || 'Non précisée')}</p>
+        </div>
+
+        <div style="margin-bottom: 28px;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            ${packType === 'Complet' ? '12' : '11'}. Validation
+          </h2>
+          <p><strong>Confirmation 1 :</strong> ${escapeHtml(confirmation1SM)}</p>
+          <p><strong>Confirmation 2 :</strong> ${escapeHtml(confirmation2SM)}</p>
+        </div>
+
+        <div style="margin-bottom: 0;">
+          <h2 style="margin: 0 0 14px 0; font-size: 18px; border-bottom: 2px solid #111827; padding-bottom: 8px;">
+            Fichiers sélectionnés
+          </h2>
+          ${fichiersSelectionnesHtmlSM}
+          <div style="margin-top:16px;">
+            <h3 style="margin:0 0 10px 0; font-size:16px;">Fichiers réellement envoyés</h3>
+            ${uploadedFilesHtml}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+`;
+
+const socialMediaClientEmailHtml = `
+  <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6; background: #f7f7f7; padding: 24px;">
+    <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
+      <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
+        <h1 style="margin: 0; font-size: 24px;">✅ Brief bien reçu - KPS Agency</h1>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #d1d5db;">
+          Offre concernée : <strong>${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</strong>
+        </p>
+      </div>
+
+      <div style="padding: 28px;">
+        <p style="margin-top: 0;">Bonjour ${escapeHtml(nom || 'à vous')},</p>
+
+        <p>
+          Nous confirmons avoir bien reçu votre brief concernant l’offre
+          <strong>${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</strong>.
+        </p>
+
+        <p>
+          Notre équipe va maintenant analyser votre demande, relire les éléments transmis
+          et étudier la faisabilité ainsi que le cadrage du projet.
+        </p>
+
+        <div style="margin: 24px 0; padding: 16px 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="margin: 0 0 12px 0; font-size: 18px;">Résumé rapide</h2>
+          <p style="margin: 6px 0;"><strong>Nom :</strong> ${escapeHtml(nom || 'Non précisé')}</p>
+          <p style="margin: 6px 0;"><strong>Email :</strong> ${escapeHtml(clientEmail || 'Non précisé')}</p>
+          <p style="margin: 6px 0;"><strong>Offre :</strong> ${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</p>
+          <p style="margin: 6px 0;"><strong>Entreprise :</strong> ${escapeHtml(entreprise || 'Non précisée')}</p>
+        </div>
+
+        <p>
+          Nous reviendrons vers vous sous <strong>48 heures maximum</strong> avec un retour clair
+          sur votre brief et la suite à donner.
+        </p>
+
+        <p>
+          Si un ajustement ou une précision est nécessaire, nous vous recontacterons directement
+          par email.
+        </p>
+
+        <p style="margin-bottom: 0;">
+          Merci pour votre confiance,<br>
+          <strong>KPS Agency</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+`;
     // ========= BLOCS HTML =========
     const projectHtml = isLandingPage
   ? `
@@ -974,11 +1286,17 @@ const googleBusinessHtml = hasGoogleBusinessDetails
 `;
 
     
- const kpsEmailResult = await resend.emails.send({
+const providerSubject = isSocialMedia
+  ? `Nouveau Brief Social/Médias - ${socialOfferRaw || offre || 'Offre non précisée'}`
+  : `Nouveau Brief Reçu - ${offre}`;
+    
+const providerHtml = isSocialMedia ? socialMediaKpsEmailHtml : kpsEmailHtml;
+
+const kpsEmailResult = await resend.emails.send({
   from: 'KPS Agency <contact@kps-agency.com>',
-  to: 'kps.agency.ia@gmail.com',
-  subject: `Nouveau Brief Reçu - ${offre}`,
-  html: kpsEmailHtml,
+  to: 'kps.agency.i@gmail.com',
+  subject: providerSubject,
+  html: providerHtml,
 });
 
 if (kpsEmailResult.error) {
@@ -997,7 +1315,7 @@ if (kpsEmailResult.error) {
       <div style="background: #111827; color: #ffffff; padding: 24px 28px;">
         <h1 style="margin: 0; font-size: 24px;">✅ Brief bien reçu - KPS Agency</h1>
         <p style="margin: 10px 0 0 0; font-size: 14px; color: #d1d5db;">
-          Offre concernée : <strong>${escapeHtml(offre)}</strong>
+          <strong>${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</strong>
         </p>
       </div>
 
@@ -1006,7 +1324,7 @@ if (kpsEmailResult.error) {
 
         <p>
           Nous confirmons avoir bien reçu votre brief concernant l’offre
-          <strong>${escapeHtml(offre)}</strong>.
+         <strong>${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</strong
         </p>
 
         <p>
@@ -1018,7 +1336,7 @@ if (kpsEmailResult.error) {
           <h2 style="margin: 0 0 12px 0; font-size: 18px;">Résumé rapide</h2>
           <p style="margin: 6px 0;"><strong>Nom :</strong> ${escapeHtml(nom)}</p>
           <p style="margin: 6px 0;"><strong>Email :</strong> ${escapeHtml(clientEmail)}</p>
-          <p style="margin: 6px 0;"><strong>Offre :</strong> ${escapeHtml(offre)}</p>
+          <p style="margin: 6px 0;"><strong>Offre :</strong> ${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</p>
           <p style="margin: 6px 0;"><strong>Entreprise / activité :</strong> ${escapeHtml(entreprise)}</p>
         </div>
 
@@ -1041,12 +1359,18 @@ if (kpsEmailResult.error) {
   </div>
 `;
 
-    const clientEmailResult = await resend.emails.send({
-      from: 'KPS Agency <contact@kps-agency.com>',
-      to: clientEmail,
-      subject: 'Brief bien reçu - KPS Agency',
-      html: clientEmailHtml,
-    });
+ const clientSubject = isSocialMedia
+  ? 'Brief Social/Médias bien reçu - KPS Agency'
+  : 'Brief bien reçu - KPS Agency';
+
+const clientHtml = isSocialMedia ? socialMediaClientEmailHtml : clientEmailHtml;
+
+const clientEmailResult = await resend.emails.send({
+  from: 'KPS Agency <contact@kps-agency.com>',
+  to: clientEmail,
+  subject: clientSubject,
+  html: clientHtml,
+});
 
     if (clientEmailResult.error) {
       console.error('Erreur envoi mail client:', clientEmailResult.error);
