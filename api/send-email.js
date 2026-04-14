@@ -1294,7 +1294,7 @@ const providerHtml = isSocialMedia ? socialMediaKpsEmailHtml : kpsEmailHtml;
 
 const kpsEmailResult = await resend.emails.send({
   from: 'KPS Agency <contact@kps-agency.com>',
-  to: 'kps.agency.i@gmail.com',
+  to: 'kps.agency.ia@gmail.com',
   subject: providerSubject,
   html: providerHtml,
 });
