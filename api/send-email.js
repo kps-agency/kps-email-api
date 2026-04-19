@@ -145,7 +145,7 @@ function extractUploadedFiles(formData) {
 
   // ===== NOUVEAU FORMAT ENVOYÉ PAR LE FRONT =====
 
-  if (formData?.logoUrl || formData?.logoFileName || formData?.logoPublicId) {
+  if (formData?.logoUrl || formData?.logoFileName || formData?.logoPublicId || formData?.logoBase64) {
     files.push({
   label: 'Logo',
   name: String(
@@ -158,24 +158,33 @@ function extractUploadedFiles(formData) {
   base64: String(formData.logoBase64 || ''),
 });
 
-  if (Array.isArray(formData?.imageUrls) && formData.imageUrls.length > 0) {
-    formData.imageUrls.forEach((url, index) => {
-      const fileName =
-        Array.isArray(formData?.imageFileNames) && formData.imageFileNames[index]
-          ? formData.imageFileNames[index]
-          : `image-${index + 1}`;
+  if (
+  (Array.isArray(formData?.imageUrls) && formData.imageUrls.length > 0) ||
+  (Array.isArray(formData?.imageBase64s) && formData.imageBase64s.length > 0)
+) {
+  const imageSources = Array.isArray(formData?.imageUrls) && formData.imageUrls.length > 0
+    ? formData.imageUrls
+    : formData.imageBase64s;
 
-      files.push({
-  label: `Image ${index + 1}`,
-  name: String(fileName),
-  url: String(url || ''),
-  type: 'image',
-  base64: String(
-    Array.isArray(formData?.imageBase64s) && formData.imageBase64s[index]
-      ? formData.imageBase64s[index]
-      : ''
-  ),
-});
+  imageSources.forEach((url, index) => {
+    const fileName =
+      Array.isArray(formData?.imageFileNames) && formData.imageFileNames[index]
+        ? formData.imageFileNames[index]
+        : `image-${index + 1}`;
+
+    files.push({
+      label: `Image ${index + 1}`,
+      name: String(fileName),
+      url: String(url || ''),
+      type: 'image',
+      base64: String(
+        Array.isArray(formData?.imageBase64s) && formData.imageBase64s[index]
+          ? formData.imageBase64s[index]
+          : ''
+      ),
+    });
+  });
+}
 
   // ===== ANCIEN FORMAT / FORMATS DE SECOURS =====
 
