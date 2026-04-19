@@ -240,6 +240,76 @@ function buildUploadedFilesHtml(files) {
   `;
 }
 
+async function uploadFilesToStorage(files = [], briefId = 'brief') {
+  const uploaded = [];
+
+  for (const file of files) {
+    try {
+      if (!file?.base64 || !file?.name) continue;
+
+      const cleanName = String(file.name).replace(/[^\w.\-]/g, '_');
+      const filePath = `${briefId}/${Date.now()}-${cleanName}`;
+
+      const base64Data = file.base64.includes(',')
+        ? file.base64.split(',')[1]
+        : file.base64;
+
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      const { error: uploadError } = await supabase.storage
+        .from('brief-files')
+        .upload(filePath, buffer, {
+          contentType: file.type || 'application/octet-stream',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Erreur upload storage :', uploadError);
+        continue;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('brief-files')
+        .getPublicUrl(filePath);
+
+      uploaded.push({
+        name: file.name,
+        label: file.label || 'Fichier',
+        path: filePath,
+        url: publicUrlData?.publicUrl || null,
+        type: file.type || null,
+      });
+    } catch (err) {
+      console.error('Erreur traitement fichier :', err);
+    }
+  }
+
+  return uploaded;
+}
+
+function buildUploadedFilesLinksHtml(files = []) {
+  if (!files.length) {
+    return '<p style="margin:0;">Aucun fichier réellement envoyé.</p>';
+  }
+
+  return files
+    .map((file) => {
+      const safeLabel = escapeHtml(file.label || 'Fichier');
+      const safeName = escapeHtml(file.name || 'Sans nom');
+      const safeUrl = file.url || '#';
+
+      return `
+        <p style="margin:8px 0;">
+          <strong>${safeLabel} :</strong>
+          <a href="${safeUrl}" target="_blank" style="color:#4ea1ff; text-decoration:underline;">
+            ${safeName}
+          </a>
+        </p>
+      `;
+    })
+    .join('');
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -788,8 +858,15 @@ const fichiersSelectionnesHtmlSM =
       ].some(isMeaningful);
 
     // ========= FICHIERS =========
-    const uploadedFiles = extractUploadedFiles(formData);
-    const uploadedFilesHtml = buildUploadedFilesHtml(uploadedFiles);
+const rawUploadedFiles = extractUploadedFiles(formData);
+const briefStorageId = `brief-${Date.now()}`;
+
+const uploadedFiles = await uploadFilesToStorage(
+  rawUploadedFiles,
+  briefStorageId
+);
+
+const uploadedFilesHtml = buildUploadedFilesLinksHtml(uploadedFiles);
 
     const { data: pendingBrief, error: insertError } = await supabase
   .from('briefs_pending')
