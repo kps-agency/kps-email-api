@@ -1413,7 +1413,7 @@ if (kpsEmailResult.error) {
 
         <p>
           Nous confirmons avoir bien reçu votre brief concernant l’offre
-         <strong>${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</strong
+         <strong>${escapeHtml(socialOfferRaw || offre || 'Non précisée')}</strong>
         </p>
 
         <p>
