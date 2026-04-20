@@ -145,7 +145,12 @@ function extractUploadedFiles(formData) {
   };
 
   // ===== NOUVEAU FORMAT ENVOYÉ PAR LE FRONT =====
-  if (formData?.logoUrl || formData?.logoFileName || formData?.logoPublicId || formData?.logoBase64) {
+  if (
+    formData?.logoUrl ||
+    formData?.logoFileName ||
+    formData?.logoPublicId ||
+    formData?.logoBase64
+  ) {
     files.push({
       label: 'Logo',
       name: String(
