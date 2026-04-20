@@ -1,5 +1,5 @@
-import { Resend } from 'resend';
-import { createClient } from '@supabase/supabase-js';
+const { Resend } = require('resend');
+const { createClient } = require('@supabase/supabase-js');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -322,8 +322,7 @@ function buildUploadedFilesLinksHtml(files = []) {
     .join('');
 }
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+module.exports = async function handler(req, res) {  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
