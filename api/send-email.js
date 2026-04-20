@@ -135,12 +135,18 @@ function extractUploadedFiles(formData) {
       file.mimeType ||
       '';
 
+    const base64 =
+      file?.base64 ||
+      file?.data ||
+      file?.fileBase64 ||
+      '';
+
     files.push({
       label,
       name: String(name),
       url: String(url || ''),
       type: String(type || ''),
-      base64: String(file?.base64 || file?.data || file?.fileBase64 || ''),
+      base64: String(base64 || ''),
     });
   };
 
@@ -153,13 +159,9 @@ function extractUploadedFiles(formData) {
   ) {
     files.push({
       label: 'Logo',
-      name: String(
-        formData.logoFileName ||
-        formData.logoPublicId ||
-        'logo'
-      ),
+      name: String(formData.logoFileName || formData.logoPublicId || 'logo'),
       url: String(formData.logoUrl || ''),
-      type: 'image',
+      type: 'image/jpeg',
       base64: String(formData.logoBase64 || ''),
     });
   }
@@ -183,7 +185,7 @@ function extractUploadedFiles(formData) {
         label: `Image ${index + 1}`,
         name: String(fileName),
         url: String(url || ''),
-        type: 'image',
+        type: 'image/jpeg',
         base64: String(
           Array.isArray(formData?.imageBase64s) && formData.imageBase64s[index]
             ? formData.imageBase64s[index]
@@ -193,9 +195,31 @@ function extractUploadedFiles(formData) {
     });
   }
 
-  // ===== ANCIEN FORMAT / FORMATS DE SECOURS =====
+  // ===== FORMAT ACTUEL FRONT : ATTACHMENTS RÉELS =====
+  if (formData?.logoAttachment) {
+    pushFile(formData.logoAttachment, 'Logo');
+  }
+
+  if (Array.isArray(formData?.imageAttachments)) {
+    for (const file of formData.imageAttachments) {
+      pushFile(file, 'Image');
+    }
+  }
+
+  if (Array.isArray(formData?.videoAttachments)) {
+    for (const file of formData.videoAttachments) {
+      pushFile(file, 'Vidéo');
+    }
+  }
+
+  if (Array.isArray(formData?.testimonialAttachments)) {
+    for (const file of formData.testimonialAttachments) {
+      pushFile(file, 'Témoignage');
+    }
+  }
+
+  // ===== FORMATS DE SECOURS =====
   pushFile(
-    formData?.logoAttachment ||
     formData?.logoFile ||
     formData?.logo ||
     formData?.logoCloudinary ||
@@ -204,7 +228,6 @@ function extractUploadedFiles(formData) {
   );
 
   const imageArrays = [
-    formData?.imageAttachments,
     formData?.images,
     formData?.visuals,
     formData?.cloudinaryImages,
