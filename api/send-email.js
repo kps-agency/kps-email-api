@@ -195,6 +195,50 @@ function extractUploadedFiles(formData) {
     });
   }
 
+ if (formData?.charteUrl || formData?.charteFileName) {
+    files.push({
+      label: 'Charte',
+      name: String(formData.charteFileName || 'charte'),
+      url: String(formData.charteUrl || ''),
+      type: 'application/pdf',
+      base64: '',
+    });
+  }
+
+  if (Array.isArray(formData?.videoUrls) && formData.videoUrls.length > 0) {
+    formData.videoUrls.forEach((url, index) => {
+      const fileName =
+        Array.isArray(formData?.videoFileNames) && formData.videoFileNames[index]
+          ? formData.videoFileNames[index]
+          : `video-${index + 1}`;
+
+      files.push({
+        label: `Vidéo ${index + 1}`,
+        name: String(fileName),
+        url: String(url || ''),
+        type: 'video/mp4',
+        base64: '',
+      });
+    });
+  }
+
+  if (Array.isArray(formData?.testimonialUrls) && formData.testimonialUrls.length > 0) {
+    formData.testimonialUrls.forEach((url, index) => {
+      const fileName =
+        Array.isArray(formData?.testimonialFileNames) && formData.testimonialFileNames[index]
+          ? formData.testimonialFileNames[index]
+          : `temoignage-${index + 1}`;
+
+      files.push({
+        label: `Témoignage ${index + 1}`,
+        name: String(fileName),
+        url: String(url || ''),
+        type: 'application/octet-stream',
+        base64: '',
+      });
+    });
+  }
+  
   // ===== FORMAT ACTUEL FRONT : ATTACHMENTS RÉELS =====
   if (formData?.logoAttachment) {
     pushFile(formData.logoAttachment, 'Logo');
