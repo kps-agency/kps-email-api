@@ -899,15 +899,8 @@ const fichiersSelectionnesHtmlSM =
       ].some(isMeaningful);
 
     // ========= FICHIERS =========
-const rawUploadedFiles = extractUploadedFiles(formData);
-const briefStorageId = `brief-${Date.now()}`;
+const uploadedFiles = extractUploadedFiles(formData);
 
-const uploadedFiles = await uploadFilesToStorage(
-  rawUploadedFiles,
-  briefStorageId
-);
-
-console.log('rawUploadedFiles =', rawUploadedFiles);
 console.log('uploadedFiles =', uploadedFiles);
 
 const uploadedFilesHtml = buildUploadedFilesLinksHtml(uploadedFiles);
