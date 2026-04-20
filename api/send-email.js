@@ -910,8 +910,6 @@ const uploadedFiles = await uploadFilesToStorage(
 console.log('rawUploadedFiles =', rawUploadedFiles);
 console.log('uploadedFiles =', uploadedFiles);
 
-const uploadedFilesHtml = buildUploadedFilesLinksHtml(uploadedFiles)
-
 const uploadedFilesHtml = buildUploadedFilesLinksHtml(uploadedFiles);
 
     const { data: pendingBrief, error: insertError } = await supabase
